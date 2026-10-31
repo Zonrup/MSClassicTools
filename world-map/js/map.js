@@ -254,6 +254,7 @@
     level: 30,
     selected: null,
     hover: null,
+    portalHover: null, // map whose minimap portal pin is under the mouse (ringed on the map)
     showHidden: true,
     labelMode: "smart", // "none" | "smart" | "all"
     showForgottenHollow: false,
@@ -1077,8 +1078,21 @@
 
   function drawNode(m, now) {
     const [x, y] = worldToScreen(m.x, m.y);
-    const r = nodeRadius(m) * (state.hover === m ? 1.15 : 1);
+    const r = nodeRadius(m) * (state.hover === m || state.portalHover === m ? 1.15 : 1);
     if (x < -80 || y < -60 || x > W + 80 || y > H + 60) return;
+
+    // Portal-blue ring on the target of the minimap pin under the mouse.
+    if (state.portalHover === m) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, r + 7, 0, Math.PI * 2);
+      ctx.strokeStyle = "#3aa0ff";
+      ctx.lineWidth = 4;
+      ctx.shadowColor = "rgba(80,180,255,.9)";
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.restore();
+    }
 
     if (state.selected === m) {
       const pulse = (Math.sin(now / 260) + 1) / 2;
@@ -1151,7 +1165,7 @@
       drawSkull(x + r * 0.85 + s * 0.3, y - r * 0.85 - s * 0.2, s);
     }
 
-    const focus = state.hover === m || state.selected === m;
+    const focus = state.hover === m || state.selected === m || state.portalHover === m;
     const lr = farmRange(m);
     const lvText = lr && (cam.s >= 1.1 || focus) ? (lr.min === lr.max ? `Lv ${lr.min}` : `Lv ${lr.min}–${lr.max}`) : null;
     return { m, x, y, r, color, lvText, focus, mobHit };
@@ -1702,6 +1716,7 @@
       h += `</div>`;
     } else h += `<p class="muted">None recorded yet.</p>`;
     h += `</section>`;
+    h += minimapHtml(m);
 
     if (m.exits && m.exits.length) {
       h += `<section><h3>Leads off this map</h3><div class="links">`;
@@ -1717,16 +1732,79 @@
     panelBody.innerHTML = h;
   }
 
+  // meowDB minimap (data/minimap_info.js, from tools/scrape_minimaps.py) with a pin on each
+  // portal. Pins to maps we have are buttons that open that map's panel; others link to
+  // meowDB. The data script loads deferred and the image lazily, so read them at render time.
+  let byMapId = null;
+  function minimapHtml(m) {
+    const info = window.MINIMAP_INFO && window.MINIMAP_INFO[m.mapId];
+    const v = info && info.minimap;
+    if (!v || !v.img || !v.w || !v.h) return "";
+    if (!byMapId) byMapId = new Map(maps.map((x) => [x.mapId, x]));
+    // Game (x, y) -> percent of the image; the minimap spans w x h game units from (-cx, -cy).
+    const pct = (val, c, size) => Math.max(0, Math.min(100, ((val + c) / size) * 100)).toFixed(2);
+    let pins = "";
+    for (const [x, y, to, toName] of info.portals) {
+      if (!to || to === "999999999" || to === m.mapId) continue;
+      const t = byMapId.get(to);
+      const name = t ? t.name : toName || to;
+      const left = pct(x, v.cx, v.w);
+      const pos = `left:${left}%;top:${pct(y, v.cy, v.h)}%`;
+      // The hover label (CSS, from data-name) lines up with the minimap's nearer side for
+      // pins in its outer thirds, so long names stay inside the panel.
+      const edge = left < 34 ? " edge-l" : left > 66 ? " edge-r" : "";
+      if (t) {
+        const kind = hostOf.has(t) ? " to-building" : "";
+        pins += `<button class="mm-portal${kind}${edge}" style="${pos}" data-portal="${esc(t.id)}" data-key="${esc(to)}" data-name="${esc(name)}" aria-label="Go to ${esc(name)}"></button>`;
+      } else {
+        pins += `<a class="mm-portal off${edge}" style="${pos}" href="https://meowdb.com/msclassic/maps/${encodeURIComponent(to)}" target="_blank" rel="noopener" data-key="${esc(to)}" data-name="${esc(name)} ↗" aria-label="${esc(name)} on meowDB"></a>`;
+      }
+    }
+    const ar = v.imgW && v.imgH ? ` style="aspect-ratio:${v.imgW}/${v.imgH}"` : "";
+    return `<section><h3>Minimap</h3><div class="minimap"${ar}>
+      <img src="${esc(v.img)}" alt="Minimap of ${esc(m.name)}" loading="lazy" decoding="async">${pins}</div></section>`;
+  }
+
+  // Deferred scripts run just before DOMContentLoaded, after a panel opened from the URL.
+  if (!window.MINIMAP_INFO) document.addEventListener("DOMContentLoaded", () => { if (state.selected) renderPanel(state.selected); });
+
+  // Open map `t` in the panel: a building of the current host opens as its sub-pane, the
+  // host itself from one of its buildings is "Back", anything else is selected.
+  function goToMap(t) {
+    if (!t) return;
+    if (state.selected && hostOf.get(t) === state.selected) { openSub(t); return; }
+    if (panelSub && t === state.selected) { openSub(null); return; }
+    reveal(t); select(t);
+  }
+
+  // Hovering a pin lights every pin on this minimap that leads to the same map (they show
+  // their labels together) and rings that map on the world map (a building's host, since
+  // buildings aren't drawn).
+  let litKey = null;
+  function lightPins(pin) {
+    const key = pin ? pin.dataset.key : null;
+    if (key !== litKey) {
+      litKey = key;
+      for (const p of panelBody.querySelectorAll(".mm-portal")) p.classList.toggle("lit", !!key && p.dataset.key === key);
+    }
+    const t = pin && pin.dataset.portal ? byId.get(pin.dataset.portal) : null;
+    const node = t ? hostOf.get(t) || t : null;
+    if (node !== state.portalHover) { state.portalHover = node; needsDraw = true; }
+  }
+  panelBody.addEventListener("mouseover", (ev) => lightPins(ev.target.closest(".mm-portal")));
+  panelBody.addEventListener("mouseleave", () => lightPins(null));
+  panelBody.addEventListener("focusin", (ev) => lightPins(ev.target.closest(".mm-portal")));
+  panelBody.addEventListener("focusout", () => lightPins(null));
+
   panelBody.addEventListener("click", (ev) => {
+    lightPins(null); // the panel is about to be redrawn
     if (ev.target.closest("[data-back]")) { openSub(null); return; }
     const bld = ev.target.closest("[data-building]");
     if (bld) { openSub(byId.get(bld.dataset.building)); return; }
+    const pt = ev.target.closest("[data-portal]");
+    if (pt) { goToMap(byId.get(pt.dataset.portal)); return; }
     const b = ev.target.closest("[data-goto]");
-    if (!b) return;
-    const m = byId.get(b.dataset.goto);
-    // Following the link from a building back to its own host is just "Back".
-    if (panelSub && m === state.selected) { openSub(null); return; }
-    reveal(m); select(m);
+    if (b) goToMap(byId.get(b.dataset.goto));
   });
   document.getElementById("panelClose").addEventListener("click", () => select(null));
 

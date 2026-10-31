@@ -12,6 +12,10 @@ python world-map/tools/serve.py
 
 Run it from the repo root (the folder that holds `world-map/`), then open http://localhost:8765. `serve.py` is Python's file server plus `Cache-Control: no-cache`, so a normal reload always picks up edited files (plain `python -m http.server` lets the browser keep stale copies). `.claude/launch.json` in the repo root has this as the `world-map` config, so an agent can start it with `preview_start` `name: "world-map"`. Opening `index.html` straight from disk also mostly works, since the data files are scripts and not JSON.
 
+**For agents:**
+- The server may already be running (another session may have started it on port 8765). Check http://localhost:8765 first; if it answers, use it, or call `preview_start` with `name: "world-map"`, which reuses a running server. Starting a second copy on the same port fails.
+- There's no live reload: the page never refreshes itself when a file changes. After each edit, reload your own test tab (a normal reload is enough with `serve.py`). Don't reload the user's tab: unsaved Edit-mode moves live only there.
+
 ## Deploying (liujason.me/msclassicatlas)
 
 The live copy is served from the GitHub Pages site repo `Zonrup/zonrup.github.io` (an Astro site; anything in its `public/` folder is published unchanged). From this repo's root:

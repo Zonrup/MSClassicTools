@@ -18,7 +18,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent  # world-map/
-FILES = ["index.html", "css", "js", "data/terrain.js", "data/victoria.js", "data/mob_images.js", "data/mobs"]
+FILES = ["index.html", "css", "js", "data/terrain.js", "data/victoria.js", "data/mob_images.js", "data/mobs",
+         "data/minimap_info.js", "data/minimaps"]
 
 
 def git(repo, *args, check=True):
