@@ -12,6 +12,16 @@ python -m http.server 8765 --directory world-map
 
 Run it from the repo root (the folder that holds `world-map/`), then open http://localhost:8765. `.claude/launch.json` in the repo root has this as the `world-map` config, so an agent can start it with `preview_start` `name: "world-map"`. Opening `index.html` straight from disk also mostly works, since the data files are scripts and not JSON.
 
+## Deploying (liujason.me/msclassicatlas)
+
+The live copy is served from the GitHub Pages site repo `Zonrup/zonrup.github.io` (an Astro site; anything in its `public/` folder is published unchanged). From this repo's root:
+
+```bash
+python world-map/tools/deploy_pages.py <path to your zonrup.github.io checkout> --push
+```
+
+It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js` scripts and `data/mobs/`) into the site repo's `public/msclassicatlas/`, replacing what was there, commits that folder and pushes. The site's own workflow then builds and publishes it in a minute or two. Leave off `--push` to look at the commit first; `--dest` changes the folder. Commit here first so the deploy commit names the right source revision.
+
 ## Controls
 
 - Drag to pan, scroll wheel or pinch to zoom, `Home` or ⤢ to fit everything, `+` / `-` to zoom. Typing letters, digits or space anywhere starts a search.
@@ -59,6 +69,7 @@ A map's node takes the level that a third of its spawns are at or above (`HARD_S
 | `data/raw/meowdb-pack.json` | Raw meowDB crawl, the input to the build. | No, re-crawl instead |
 | `tools/crawl_meowdb.js` | Browser-console script that crawls meowDB and downloads the pack. | Yes |
 | `tools/fetch_mob_images.py` | Downloads every monster's sprite from meowDB into `data/mobs/` and writes `data/mob_images.js`. | Yes |
+| `tools/deploy_pages.py` | Copies the page into the GitHub Pages site repo and commits/pushes it (see Deploying). | Yes |
 | `data/mobs/`, `data/mob_images.js` | Monster sprites (PNG or animated GIF) and the monster key → file index. | No, re-run the fetch |
 | `tools/build_data.py` | Turns the pack into `victoria.js`. Needs `numpy`. | Yes |
 | `tools/save_positions.py` | Writes positions dumped from the running page into `victoria.js`. | Yes |
