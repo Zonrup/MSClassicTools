@@ -971,6 +971,21 @@
     return (m.worldMapDot ? 10.5 : 8.5) * k;
   }
 
+  // Node outline: a darker, semi-transparent shade of the node's own fill, thin.
+  const NODE_EDGE_W = 1.4;
+  const nodeEdgeCache = new Map();
+  function nodeEdge(hex) {
+    if (!nodeEdgeCache.has(hex)) {
+      const n = parseInt(hex.slice(1), 16);
+      const k = 0.55; // share of the fill colour kept (the rest is black)
+      const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => Math.round(c * k));
+      nodeEdgeCache.set(hex, `rgba(${r},${g},${b},.8)`);
+    }
+    return nodeEdgeCache.get(hex);
+  }
+  // Label outline thickness as a share of the font size (was 0.3).
+  const LABEL_EDGE = 0.17;
+
   // Map text (labels, level lines, area names): Atkinson Hyperlegible, made for legibility (bold 700 only here).
   const LABEL_FAMILY = `"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif`;
   function label(text, x, y, size, fill = "#fff", stroke = "#2b1a0e", weight = 700) {
@@ -979,7 +994,7 @@
     ctx.textBaseline = "middle";
     ctx.lineJoin = "round";
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = Math.max(3, size * 0.3);
+    ctx.lineWidth = Math.max(2, size * LABEL_EDGE);
     ctx.strokeText(text, x, y);
     ctx.fillStyle = fill;
     ctx.fillText(text, x, y);
@@ -1096,7 +1111,7 @@
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
-      ctx.strokeStyle = "#0f3a6e"; ctx.lineWidth = 2.5;
+      ctx.strokeStyle = nodeEdge("#1c6fd1"); ctx.lineWidth = NODE_EDGE_W + 0.4;
       ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
       return { m, x, y: y + r + 20, priority: 0, banner: true };
     }
@@ -1114,16 +1129,18 @@
 
     shapePath(m.type, x, y, r);
     ctx.fillStyle = color; ctx.fill();
-    ctx.strokeStyle = "#2b1a0e"; ctx.lineWidth = 2.2;
+    ctx.strokeStyle = nodeEdge(color); ctx.lineWidth = NODE_EDGE_W;
     if (m.type === "hidden") ctx.setLineDash([3, 2]);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // glossy highlight
-    ctx.beginPath();
-    ctx.arc(x - r * 0.3, y - r * 0.35, r * 0.32, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255,255,255,.6)";
-    ctx.fill();
+    // Soft highlight, round nodes only (squares, diamonds and stars stay flat).
+    if (!["dungeon", "hidden", "boss"].includes(m.type)) {
+      ctx.beginPath();
+      ctx.arc(x - r * 0.32, y - r * 0.36, r * 0.26, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,.28)";
+      ctx.fill();
+    }
 
     if (m.type === "safe") {
       ctx.beginPath(); ctx.arc(x, y, r * 0.35, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
@@ -1159,8 +1176,8 @@
   //   AREA..ROAD: + area names along numbered side paths ("East Rocky Mountain")
   //   ROAD..ALL:  + names of maps on main roads between towns
   //   ALL and up: + every other map name (still never overlapping)
-  const SMART_ZOOM = { AREA: 0.2, ROAD: 0.4, ALL: 0.6 };
-  const LABEL_PAD = 3;          // px kept clear around each smart label
+  const SMART_ZOOM = { AREA: 0.2, ROAD: 0.6, ALL: 0.9 };
+  const LABEL_PAD = 8;          // px kept clear around each smart label (more = sparser)
   const SERIES_FIT = 0.75;      // share of neighbour pairs whose own labels must fit to skip the series label
   const textWidths = new Map();
   // Web fonts arrive after the first frames: re-measure and redraw once they're in.
@@ -1330,7 +1347,7 @@
       ctx.rotate(ang);
       ctx.font = SERIES_FONT;
       ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round";
-      ctx.strokeStyle = "rgba(43,26,14,.85)"; ctx.lineWidth = 4.5;
+      ctx.strokeStyle = "rgba(43,26,14,.85)"; ctx.lineWidth = Math.max(2, SERIES_SIZE * LABEL_EDGE);
       ctx.strokeText(c.s.base, 0, 0);
       ctx.fillStyle = "#fff3c4";
       ctx.fillText(c.s.base, 0, 0);
