@@ -39,6 +39,8 @@ It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js`
   - Font: Nunito (`LABEL_FAMILY`), 14 px map names, 12 px level lines, 16 px italic area names (`LABEL_SIZE`, `LV_SIZE`, `SERIES_SIZE`).
   - Main roads (`routeScore`): for every pair of island towns, the shortest walk (fewest maps, then distance). A map's score is how many of those walks use it; 0 means a side path.
   - Series (`series`): linked runs of maps named `<base> I, II, ...` or `<base> 1, 2, ...`. Smart shows the base name once, in italics, tilted along the run. From 2× members on a main road get their own labels; from 3× the run splits into map names where they fit (`SERIES_FIT`).
+  - Hand-picked areas (`AREA_GROUPS` in `js/map.js`): for areas whose maps don't share a numbered name, or a single big map that deserves an area name (shown just under its node). List an area name and its map ids; those maps leave any automatic series. Currently: Golem Temple (The Entrance of Golem's Temple, The Breathing Rock, Golem's Temple I–IV) and 3-Way Road-Split.
+  - Area names try several spots (`placeSeries`): the middle of the run along its main direction, the middle of each link inside the run along that link, then on each map, each also flat; the first spot clear of other labels and other maps' nodes wins.
   - Knobs: `SMART_ZOOM`, `LABEL_PAD`, `SERIES_FIT`, the priorities in `labelPriority`. `window.worldMap.routeScore` and `.series` are exposed for debugging.
 - Backtick (`` ` ``) or **Edit layout**: drag nodes (see [Changing the layout](#changing-the-layout)).
 

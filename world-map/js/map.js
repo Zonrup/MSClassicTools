@@ -210,6 +210,25 @@
         if (comp.length >= 2) series.push({ base, members: comp, key: `${base}|${comp[0].id}` });
       }
     }
+
+    // Hand-picked areas whose maps don't share a numbered name, or single big maps that
+    // deserve an area name of their own. They take their maps out of any automatic series
+    // (which is dropped if fewer than 2 maps are left).
+    const AREA_GROUPS = [
+      { name: "Golem Temple", maps: ["the_entrance_of_golem_s_temple", "the_breathing_rock",
+        "golem_s_temple_i", "golem_s_temple_ii", "golem_s_temple_iii", "golem_s_temple_iv"] },
+      { name: "3-Way Road-Split", maps: ["3_way_road_split"] },
+    ];
+    for (const g of AREA_GROUPS) {
+      const members = g.maps.map((id) => byId.get(id)).filter(Boolean);
+      if (!members.length) continue;
+      const taken = new Set(members);
+      for (let i = series.length - 1; i >= 0; i--) {
+        series[i].members = series[i].members.filter((m) => !taken.has(m));
+        if (series[i].members.length < 2) series.splice(i, 1);
+      }
+      series.push({ base: g.name, members, key: `${g.name}|area`, single: members.length === 1 });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1190,7 +1209,8 @@
       for (const s of series) {
         // Once main-road names show, maps on a main road keep their own labels.
         const run = s.members.filter((m) => jobOf.has(m) && (tier < 2 || !(routeScore.get(m.id) > 0)));
-        if (run.length < 2) continue;
+        if (run.length < (s.single ? 1 : 2)) continue;
+        if (tier === 3 && s.single) continue; // the map's own label takes over
         if (tier === 3) { // fully zoomed in: split into map names where they fit
           const inRun = new Set(run);
           let pairs = 0, ok = 0;
@@ -1244,23 +1264,49 @@
       if (j.lvText) label(j.lvText, at.cx, top + LABEL_SIZE + 4 + LV_SIZE / 2, LV_SIZE, j.color, "#2b1a0e", 800);
     }
 
-    // One italic name laid along a numbered side path, e.g. "East Rocky Mountain".
+    // One italic name laid along an area, e.g. "East Rocky Mountain". Spots tried in order:
+    // the middle of the run along its main direction, the middle of each link inside the
+    // run along that link, then on each map; each also flat. A single-map area sits just
+    // under its node. The first spot clear of other labels and other maps' nodes wins.
     function placeSeries(c, fits, placed) {
       const pts = c.run.map((m) => jobOf.get(m));
-      const cx = pts.reduce((a, p) => a + p.x, 0) / pts.length, cy = pts.reduce((a, p) => a + p.y, 0) / pts.length;
-      // Main direction of the run; flat text if the run isn't clearly stretched one way.
-      let sxx = 0, syy = 0, sxy = 0;
-      for (const p of pts) { const dx = p.x - cx, dy = p.y - cy; sxx += dx * dx; syy += dy * dy; sxy += dx * dy; }
-      const ang0 = 0.5 * Math.atan2(2 * sxy, sxx - syy);
-      const tr = sxx + syy, det = sxx * syy - sxy * sxy;
-      const l1 = tr / 2 + Math.sqrt(Math.max(0, tr * tr / 4 - det)), l2 = tr / 2 - Math.sqrt(Math.max(0, tr * tr / 4 - det));
-      let ang = l1 > 3 * Math.max(l2, 1) ? ang0 : 0;
-      if (ang > Math.PI / 2) ang -= Math.PI; else if (ang < -Math.PI / 2) ang += Math.PI;
-      if (Math.abs(ang) > Math.PI / 3) ang = 0; // too steep to read comfortably
-      const w = textWidth(c.s.base, SERIES_FONT) + 8;
-      const box = { cx, cy, hw: w / 2, hh: SERIES_SIZE / 2 + 2, ang };
-      if (!fits(box, new Set(c.run))) return;
+      const w = textWidth(c.s.base, SERIES_FONT) + 8, hh = SERIES_SIZE / 2 + 2;
+      const readable = (a) => {
+        if (a > Math.PI / 2) a -= Math.PI; else if (a < -Math.PI / 2) a += Math.PI;
+        return Math.abs(a) > Math.PI / 3 ? 0 : a; // too steep to read comfortably
+      };
+      const spots = [];
+      if (c.s.single) {
+        const p = pts[0];
+        spots.push([p.x, p.y + p.r + hh + 3, 0], [p.x, p.y - p.r - hh - 3, 0]);
+      } else {
+        const cx = pts.reduce((a, p) => a + p.x, 0) / pts.length, cy = pts.reduce((a, p) => a + p.y, 0) / pts.length;
+        // Main direction of the run; flat text if the run isn't clearly stretched one way.
+        let sxx = 0, syy = 0, sxy = 0;
+        for (const p of pts) { const dx = p.x - cx, dy = p.y - cy; sxx += dx * dx; syy += dy * dy; sxy += dx * dy; }
+        const tr = sxx + syy, det = sxx * syy - sxy * sxy, disc = Math.sqrt(Math.max(0, tr * tr / 4 - det));
+        const main = tr / 2 + disc > 3 * Math.max(tr / 2 - disc, 1) ? readable(0.5 * Math.atan2(2 * sxy, sxx - syy)) : 0;
+        spots.push([cx, cy, main]);
+        const inRun = new Set(c.run);
+        for (const m of c.run) {
+          for (const { map: v } of neighbors.get(m.id)) {
+            if (!inRun.has(v) || v.id < m.id) continue;
+            const a = jobOf.get(m), b = jobOf.get(v);
+            spots.push([(a.x + b.x) / 2, (a.y + b.y) / 2, readable(Math.atan2(b.y - a.y, b.x - a.x))]);
+          }
+        }
+        for (const p of pts) spots.push([p.x, p.y, main]);
+        for (const s of spots.slice()) if (s[2]) spots.push([s[0], s[1], 0]);
+      }
+      const own = new Set(c.run);
+      let box = null;
+      for (const [x, y, ang] of spots) {
+        const b = { cx: x, cy: y, hw: w / 2, hh, ang };
+        if (fits(b, own)) { box = b; break; }
+      }
+      if (!box) return;
       placed.push(box);
+      const { cx, cy, ang } = box;
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(ang);
