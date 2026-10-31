@@ -409,14 +409,12 @@
         const p = new Path2D();
         p.moveTo(root.x, root.y);
         p.bezierCurveTo(root.x, (root.y + s.entry.y) / 2, s.entry.x, (root.y + s.entry.y) / 2, s.entry.x, s.entry.y);
+        // Kept faint on purpose: a hint of the way down, not a road.
         ctx.lineCap = "round";
-        ctx.setLineDash([]);
-        ctx.strokeStyle = "rgba(20,14,30,.55)";
-        ctx.lineWidth = 26;
-        ctx.stroke(p);
-        ctx.setLineDash([22, 16]);
-        ctx.strokeStyle = "#b897ff";
-        ctx.lineWidth = 9;
+        // Sizes in screen px (this is drawn in world units, hence / cam.s).
+        ctx.setLineDash([6 / cam.s, 8 / cam.s]);
+        ctx.strokeStyle = "rgba(184,151,255,.45)";
+        ctx.lineWidth = 2.5 / cam.s;
         ctx.stroke(p);
         ctx.setLineDash([]);
       }
@@ -953,9 +951,9 @@
     return (m.worldMapDot ? 10.5 : 8.5) * k;
   }
 
-  // Map text (labels, level lines, area names). Nunito reads better than Fredoka at small sizes.
-  const LABEL_FAMILY = `Nunito, "Segoe UI", system-ui, sans-serif`;
-  function label(text, x, y, size, fill = "#fff", stroke = "#2b1a0e", weight = 800) {
+  // Map text (labels, level lines, area names): Atkinson Hyperlegible, made for legibility (bold 700 only here).
+  const LABEL_FAMILY = `"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif`;
+  function label(text, x, y, size, fill = "#fff", stroke = "#2b1a0e", weight = 700) {
     ctx.font = `${weight} ${size}px ${LABEL_FAMILY}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -1131,8 +1129,8 @@
   // routeScore), numbered side paths named once along their length, then the rest.
   // ---------------------------------------------------------------------------
   const LABEL_SIZE = 14, LV_SIZE = 12, SERIES_SIZE = 16;
-  const LABEL_FONT = `800 ${LABEL_SIZE}px ${LABEL_FAMILY}`;
-  const SERIES_FONT = `italic 800 ${SERIES_SIZE}px ${LABEL_FAMILY}`;
+  const LABEL_FONT = `700 ${LABEL_SIZE}px ${LABEL_FAMILY}`;
+  const SERIES_FONT = `italic 700 ${SERIES_SIZE}px ${LABEL_FAMILY}`;
   // Smart zoom tiers, by camera scale (screen px per world unit). Scale is what decides
   // how much room labels have between nodes, whatever the window size; a bigger window
   // just shows more of the map at the same scale. Fitting the whole map is about 0.18
@@ -1261,7 +1259,7 @@
       if (!at) continue;
       const top = at.cy - h / 2;
       label(text, at.cx, top + LABEL_SIZE / 2 + 2, LABEL_SIZE);
-      if (j.lvText) label(j.lvText, at.cx, top + LABEL_SIZE + 4 + LV_SIZE / 2, LV_SIZE, j.color, "#2b1a0e", 800);
+      if (j.lvText) label(j.lvText, at.cx, top + LABEL_SIZE + 4 + LV_SIZE / 2, LV_SIZE, j.color, "#2b1a0e", 700);
     }
 
     // One italic name laid along an area, e.g. "East Rocky Mountain". Spots tried in order:

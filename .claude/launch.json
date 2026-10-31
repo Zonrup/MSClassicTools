@@ -4,7 +4,7 @@
     {
       "name": "world-map",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8765", "--directory", "world-map"],
+      "runtimeArgs": ["world-map/tools/serve.py", "8765"],
       "port": 8765
     }
   ]
