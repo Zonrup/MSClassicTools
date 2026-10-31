@@ -342,6 +342,13 @@
   }
 
   // Curve for an edge: a gentle bend so paths look hand-drawn.
+  // Each link bends a little to one side, picked from a hash of its key. Links listed here
+  // (key = the two map ids, sorted, joined by "|") bend the other way.
+  const FLIP_BEND = new Set([
+    "the_burnt_land_iii|the_burnt_land_iv",
+    "the_burnt_land_iv|the_burnt_land_v",
+  ]);
+
   function edgeCurve(e) {
     if (e.via && e.via.length) {
       return { pts: [[e.a.x, e.a.y], ...e.via, [e.b.x, e.b.y]], spline: true };
@@ -349,7 +356,7 @@
     const a = endpoint(e.a, e.b), b = endpoint(e.b, e.a);
     const dx = b.x - a.x, dy = b.y - a.y;
     const len = Math.hypot(dx, dy) || 1;
-    const h = (hashStr(e.key) % 1000) / 1000 - 0.5;
+    const h = ((hashStr(e.key) % 1000) / 1000 - 0.5) * (FLIP_BEND.has(e.key) ? -1 : 1);
     // Section maps sit on a tidy tree, so their links stay straight.
     const off = e.a.section || e.b.section ? 0 : h * 0.3 * len;
     return {

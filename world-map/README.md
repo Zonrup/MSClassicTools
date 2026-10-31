@@ -217,6 +217,8 @@ It only changes `x`, `y` and `pinned`. An agent can run the same expression with
 
 **For lasting hand placements in code**, add the map name and position to `MANUAL_POS`.
 
+**Link bends:** each link curves slightly to one side, picked from a hash of its key (`edgeCurve`). To bend one the other way, add its key (the two map ids, sorted, joined by `|`) to `FLIP_BEND` in `js/map.js`. The Burnt Land III–IV and IV–V links are flipped so the run curves outward.
+
 ## `js/map.js` structure
 
 Top to bottom:
