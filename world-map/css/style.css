@@ -444,6 +444,23 @@ body.panel-open #panel { transform: none; }
 .link-btn .via { font-size: 11px; color: var(--ink-soft); }
 
 .p-notes { font-size: 14px; line-height: 1.45; background: #fffaf0; border-left: 3px solid var(--edge); padding: 8px 10px; border-radius: 4px; }
+.p-back {
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 5px 12px 5px 8px;
+  border: 2px solid var(--edge);
+  border-radius: 999px;
+  background: #fff6dc;
+  color: var(--ink);
+  cursor: pointer;
+}
+.p-back:hover { background: #fff1c9; border-color: var(--ink); }
+.chip.building-chip { background: #f3ead2; border-radius: 3px; }
 .p-meta { margin-top: 18px; font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .muted { color: var(--ink-soft); font-size: 14px; }
 

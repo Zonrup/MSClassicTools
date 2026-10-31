@@ -32,7 +32,7 @@ It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js`
 - Click a node to open its details on the right. `Esc` closes the panel. The URL keeps the selected map (`#map=<id>`), so links can be shared.
 - Set your level (top left) to recolor every node and monster.
 - Search finds maps by name, or monsters by name (it jumps to the first map that has that monster).
-- Toggles: **Hidden streets**, **Buildings & shops** (off by default), **Forgotten Hollow**, plus the **Labels** slider (None / Smart / All). They're saved in `localStorage` under `wm-prefs`.
+- Toggles: **Hidden streets**, **Forgotten Hollow**, plus the **Labels** slider (None / Smart / All). They're saved in `localStorage` under `wm-prefs`.
 - Labels (`drawLabels` in `js/map.js`):
   - **None:** only the hovered/selected map and search hits. **All:** every map, overlaps allowed.
   - **Smart:** shows labels in zoom steps by camera scale (`SMART_ZOOM`; scale decides the room between nodes on any window size, and fitting the whole map is about 0.18 on a laptop and 0.3–0.4 on a 2560-wide screen): below 0.2 town banners only; from 0.2 area names along numbered side paths; from 0.4 names of maps on main roads; from 0.6 every map. Labels never overlap another label, a node, a section banner/marker or a HUD card, and each tries below, above, right, then left of its node (`labelPriority` sets the order).
@@ -146,7 +146,7 @@ Today, every island map is pinned or kept, so steps 4–5 only matter for new ma
 - `boss`: every monster on the map is a boss (The Cursed Sanctuary).
 - `town`: world-map town/area dots, plus hubs that open onto hunting maps, such as Sleepywood and Forgotten Hollow.
 - `hidden`: the street name says Hidden Street.
-- `building`: no monsters and only one exit (shops, houses). Hidden unless **Buildings & shops** is ticked.
+- `building`: no monsters and only one exit (shops, houses, saunas). Never drawn on the map. Each building's one linked map is its **host** (`hostOf` / `buildingsOf` in `js/map.js`): a town, or a spot like Henesys Market or Sleepywood Hotel. The host's panel lists its buildings under **Buildings**; clicking one opens it as a sub-pane (`panelSub`) with **← Back to <host>** and its connected maps. Selecting a building anywhere (search, a `#map=` link, a panel link) selects the host and opens that sub-pane. A monster search that matches a building rings its host.
 - `safe`: no monsters but more than one exit.
 - `dungeon`: the street is a Dungeon, Shallow/Deep Passage or Kerning City Subway. These also get `layer: "underground"` and sit on a generated dark cave backdrop.
 - `field`: everything else.

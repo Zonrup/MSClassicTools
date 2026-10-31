@@ -142,6 +142,21 @@
     }
   }
 
+  // Buildings (shops, halls, saunas...) are dead ends: each links to one map, its host
+  // (a town, Henesys Market, Sleepywood Hotel...). They're not drawn on the map; the host's
+  // panel lists them and opens each as a sub-pane.
+  const hostOf = new Map();       // building -> host map
+  const buildingsOf = new Map();  // host map -> [buildings]
+  for (const m of maps) {
+    if (m.type !== "building") continue;
+    const host = (neighbors.get(m.id) || []).map((n) => n.map).find((n) => n.type !== "building");
+    if (!host) continue;
+    hostOf.set(m, host);
+    if (!buildingsOf.has(host)) buildingsOf.set(host, []);
+    buildingsOf.get(host).push(m);
+  }
+  for (const list of buildingsOf.values()) list.sort((a, b) => a.name.localeCompare(b.name));
+
   // Main roads: for every pair of towns on the island, the shortest walk between them
   // (fewest maps, then shortest distance). A map's score is how many of those walks pass
   // through it; 0 means it's on a side path. Smart labels name high scores first.
@@ -241,7 +256,6 @@
     hover: null,
     showHidden: true,
     labelMode: "smart", // "none" | "smart" | "all"
-    showBuildings: false,
     showForgottenHollow: false,
     edit: false,
     mobHit: null, // { ids, maps: Set } while a monster search is highlighting maps
@@ -255,7 +269,6 @@
     if (typeof saved.showHidden === "boolean") state.showHidden = saved.showHidden;
     if (["none", "smart", "all"].includes(saved.labelMode)) state.labelMode = saved.labelMode;
     else if (saved.showLabels === true) state.labelMode = "all"; // old "Always show labels"
-    if (typeof saved.showBuildings === "boolean") state.showBuildings = saved.showBuildings;
     if (typeof saved.showForgottenHollow === "boolean") state.showForgottenHollow = saved.showForgottenHollow;
   } catch (_) { /* storage unavailable */ }
 
@@ -263,7 +276,7 @@
     try {
       localStorage.setItem("wm-prefs", JSON.stringify({
         level: state.level, showHidden: state.showHidden, labelMode: state.labelMode,
-        showBuildings: state.showBuildings, showForgottenHollow: state.showForgottenHollow,
+        showForgottenHollow: state.showForgottenHollow,
       }));
     } catch (_) { /* ignore */ }
   }
@@ -271,7 +284,7 @@
   function isVisible(m) {
     if (m.area === "forgotten_hollow" && !state.showForgottenHollow) return false;
     if (m.type === "hidden") return state.showHidden;
-    if (m.type === "building") return state.showBuildings;
+    if (hostOf.has(m)) return false; // buildings live in their host's panel, not on the map
     return true;
   }
 
@@ -1563,22 +1576,42 @@
   const TYPE_LABEL = { town: "Town", field: "Field", hidden: "Hidden Street", dungeon: "Dungeon", boss: "Boss", safe: "Safe zone", building: "Building" };
   const panelBody = document.getElementById("panelBody");
 
+  // A building can't be selected on the map: selecting one selects its host and opens the
+  // building as a sub-pane of the host's panel (panelSub), with a Back button.
+  let panelSub = null;
   function select(m, fly = true) {
+    const sub = m && hostOf.has(m) ? m : null;
+    if (sub) m = hostOf.get(sub);
+    panelSub = sub;
     state.selected = m;
     needsDraw = true;
     document.body.classList.toggle("panel-open", !!m);
     document.getElementById("panel").setAttribute("aria-hidden", m ? "false" : "true");
-    try { history.replaceState(null, "", m ? `#map=${encodeURIComponent(m.id)}` : location.pathname + location.search); } catch (_) { /* file:// may refuse */ }
+    const shown = sub || m;
+    try { history.replaceState(null, "", shown ? `#map=${encodeURIComponent(shown.id)}` : location.pathname + location.search); } catch (_) { /* file:// may refuse */ }
     if (!m) return;
     renderPanel(m);
     if (fly) flyTo(m);
   }
 
-  function renderPanel(m) {
+  // Open (or close, with null) a building sub-pane inside the current host's panel.
+  function openSub(b) {
+    if (!state.selected) return;
+    panelSub = b;
+    const shown = b || state.selected;
+    try { history.replaceState(null, "", `#map=${encodeURIComponent(shown.id)}`); } catch (_) { /* ignore */ }
+    renderPanel(state.selected);
+    document.getElementById("panel").scrollTop = 0;
+  }
+
+  function renderPanel(host) {
+    const m = panelSub && hostOf.get(panelSub) === host ? panelSub : host;
+    const inSub = m !== host;
     const region = DATA.regions[m.region]?.name || m.region;
     const lr = levelRange(m);
     const d = mapDiff(m);
-    let h = `<div class="p-badges"><span class="badge ${m.type}">${TYPE_LABEL[m.type] || m.type}</span>`;
+    let h = inSub ? `<button class="p-back" data-back>← Back to ${esc(host.name)}</button>` : "";
+    h += `<div class="p-badges"><span class="badge ${m.type}">${TYPE_LABEL[m.type] || m.type}</span>`;
     if (m.layer === "underground") h += `<span class="badge underground">Underground</span>`;
     h += m.verified
       ? `<span class="badge verified" title="Checked against meowDB">✓ meowDB</span>`
@@ -1595,8 +1628,20 @@
         <span class="chip" style="background:${c.color}"></span>
         <span class="big">Lv ${lr.min}${lr.max !== lr.min ? "–" + lr.max : ""}</span>
         <span class="verdict">${c.label}<br><span class="muted">at level ${state.level}</span></span></div>`;
-    } else {
+    } else if (!inSub) {
       h += `<p class="muted" style="margin-top:14px">${m.type === "town" ? "Town — no monsters." : "No monsters here."}</p>`;
+    }
+
+    // A host lists its buildings; each opens as a sub-pane.
+    const blds = !inSub ? buildingsOf.get(m) || [] : [];
+    if (blds.length) {
+      h += `<section><h3>Buildings (${blds.length})</h3><div class="links">`;
+      for (const b of blds) {
+        const blr = levelRange(b);
+        h += `<button class="link-btn" data-building="${esc(b.id)}"><span class="chip building-chip"></span>
+          <span>${esc(b.name)}</span><span class="lv">${blr ? `Lv ${blr.min}${blr.max !== blr.min ? "–" + blr.max : ""}` : "›"}</span></button>`;
+      }
+      h += `</div></section>`;
     }
 
     const ml = mobList(m);
@@ -1616,15 +1661,18 @@
       h += `</ul></section>`;
     }
 
-    const nb = neighbors.get(m.id) || [];
+    // Buildings are listed above, not here.
+    const nb = (neighbors.get(m.id) || []).filter(({ map: n }) => !hostOf.has(n));
     h += `<section><h3>Connected maps (${nb.length})</h3>`;
     if (nb.length) {
       h += `<div class="links">`;
       for (const { map: n, via } of nb) {
         const nlr = levelRange(n), nd = mapDiff(n);
         const col = nd ? DIFF[nd].color : n.type === "town" ? "#3aa0ff" : "#a9cbe8";
+        const nb2 = (buildingsOf.get(n) || []).length;
+        const sub = [via, nb2 ? `${nb2} building${nb2 === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ");
         h += `<button class="link-btn" data-goto="${esc(n.id)}"><span class="chip" style="background:${col}"></span>
-          <span>${esc(n.name)}${via ? `<br><span class="via">${esc(via)}</span>` : ""}</span>
+          <span>${esc(n.name)}${sub ? `<br><span class="via">${esc(sub)}</span>` : ""}</span>
           <span class="lv">${nlr ? `Lv ${nlr.min}${nlr.max !== nlr.min ? "–" + nlr.max : ""}` : TYPE_LABEL[n.type] || ""}</span></button>`;
       }
       h += `</div>`;
@@ -1646,8 +1694,15 @@
   }
 
   panelBody.addEventListener("click", (ev) => {
+    if (ev.target.closest("[data-back]")) { openSub(null); return; }
+    const bld = ev.target.closest("[data-building]");
+    if (bld) { openSub(byId.get(bld.dataset.building)); return; }
     const b = ev.target.closest("[data-goto]");
-    if (b) { const m = byId.get(b.dataset.goto); reveal(m); select(m); }
+    if (!b) return;
+    const m = byId.get(b.dataset.goto);
+    // Following the link from a building back to its own host is just "Back".
+    if (panelSub && m === state.selected) { openSub(null); return; }
+    reveal(m); select(m);
   });
   document.getElementById("panelClose").addEventListener("click", () => select(null));
 
@@ -1687,13 +1742,6 @@
     if (state.selected && !isVisible(state.selected)) select(null);
     needsDraw = true; savePrefs();
   });
-  const showBuildings = document.getElementById("showBuildings");
-  showBuildings.checked = state.showBuildings;
-  showBuildings.addEventListener("change", () => {
-    state.showBuildings = showBuildings.checked;
-    if (state.selected && !isVisible(state.selected)) select(null);
-    needsDraw = true; savePrefs();
-  });
   const showForgottenHollow = document.getElementById("showForgottenHollow");
   showForgottenHollow.checked = state.showForgottenHollow;
   showForgottenHollow.addEventListener("change", () => {
@@ -1704,10 +1752,10 @@
 
   // Turn on whatever toggles a map needs to be shown (used when jumping to it).
   function reveal(m) {
+    if (m && hostOf.has(m)) m = hostOf.get(m); // a building shows through its host
     if (!m || isVisible(m)) return;
     if (m.area === "forgotten_hollow") state.showForgottenHollow = showForgottenHollow.checked = true;
     if (m.type === "hidden") state.showHidden = showHidden.checked = true;
-    if (m.type === "building") state.showBuildings = showBuildings.checked = true;
     needsDraw = true; savePrefs();
   }
 
@@ -1786,7 +1834,8 @@
     const fromTyping = typedRings();
     const names = fromTyping.length ? fromTyping : picked.size ? [...picked] : previewNames;
     const groups = names.map((n) => groupByName.get(n)).filter(Boolean);
-    state.mobHit = groups.length ? { ids: groups.flatMap((g) => g.ids), maps: new Set(groups.flatMap((g) => [...g.maps])) } : null;
+    // A monster inside a building rings the building's host (buildings aren't drawn).
+    state.mobHit = groups.length ? { ids: groups.flatMap((g) => g.ids), maps: new Set(groups.flatMap((g) => [...g.maps].map((m) => hostOf.get(m) || m))) } : null;
     const n = state.mobHit ? state.mobHit.maps.size : 0;
     mobSelInfo.textContent = picked.size ? `${picked.size} picked · ${plural(n, "map")}` : "Pick monsters to see where they spawn";
 
