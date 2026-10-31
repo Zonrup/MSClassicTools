@@ -1528,7 +1528,10 @@
     }
 
     const hit = hitNode(ev.clientX, ev.clientY);
-    if (hit !== state.hover) { state.hover = hit; needsDraw = true; }
+    if (hit !== state.hover) {
+      state.hover = hit; needsDraw = true;
+      lightKey(hit && hit !== state.selected ? hit.mapId : null); // its portal pins on the open minimap
+    }
     canvas.classList.toggle("pointing", !!hit);
     if (hit) showTooltip(hit, ev.clientX, ev.clientY); else hideTooltip();
   });
@@ -1553,7 +1556,7 @@
   }
   canvas.addEventListener("pointerup", endPointer);
   canvas.addEventListener("pointercancel", endPointer);
-  canvas.addEventListener("pointerleave", () => { if (!drag) { state.hover = null; hideTooltip(); needsDraw = true; } });
+  canvas.addEventListener("pointerleave", () => { if (!drag) { state.hover = null; lightKey(null); hideTooltip(); needsDraw = true; } });
 
   canvas.addEventListener("wheel", (ev) => {
     ev.preventDefault();
@@ -1780,13 +1783,12 @@
   // Hovering a pin lights every pin on this minimap that leads to the same map (they show
   // their labels together) and rings that map on the world map (a building's host, since
   // buildings aren't drawn).
-  let litKey = null;
+  // The reverse works too: hovering a node on the world map lights the pins leading to it.
+  function lightKey(key) { // key: the target's meowDB map id
+    for (const p of panelBody.querySelectorAll(".mm-portal")) p.classList.toggle("lit", !!key && p.dataset.key === key);
+  }
   function lightPins(pin) {
-    const key = pin ? pin.dataset.key : null;
-    if (key !== litKey) {
-      litKey = key;
-      for (const p of panelBody.querySelectorAll(".mm-portal")) p.classList.toggle("lit", !!key && p.dataset.key === key);
-    }
+    lightKey(pin ? pin.dataset.key : null);
     const t = pin && pin.dataset.portal ? byId.get(pin.dataset.portal) : null;
     const node = t ? hostOf.get(t) || t : null;
     if (node !== state.portalHover) { state.portalHover = node; needsDraw = true; }
