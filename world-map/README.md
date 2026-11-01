@@ -267,27 +267,17 @@ Top to bottom:
 - **`links` in `victoria.js` are listed once per pair.** Build neighbors in both directions.
 - **Edit mode on a section map:** dragging it works in the page, but the next build puts it back on the tree layout.
 
+## Features
+
+See [FEATURES.md](FEATURES.md) for the full list of features.
+
 ## TODO
 
-Feature requests, in the order we plan to tackle them.
+Feature requests, in the order we plan to tackle them. Finished ones move to [FEATURES.md](FEATURES.md).
 
-1. **Done:** search for loot items and crafting stations, and drops on monster hover (see Search and Monster drops). The details below are kept for reference.
-   **Search for loot items and crafting stations.**
-   - ETC loot items that monsters drop become searchable entities, alongside monsters, NPCs and maps. Searching "tree branch" rings every map with regular Stumps.
-   - Crafting stations become searchable too, and ring the maps they're on.
-   - Hovering a monster card in the picker, or a monster row in the side panel, shows a list of that monster's common drops. Leave out equips for now; they may come later.
-   - Needs new data: `victoria.js` has no drops or crafting stations yet. Extend `tools/crawl_meowdb.js` and `tools/build_data.py` to pull them from meowDB.
-2. **Word-prefix text filter at the top of the picker.** Put a text filter at the top of the "Find farming spots" dialog that matches the start of any word, so "bra" finds "Tree Branch". Today's filter (`mobMatchesFilter`) matches any substring.
-3. **Done:** "Selected" chips at the top of the picker, and separate Typed / Picked rows under the search bar.
-   **"Selected" chip list at the top of the picker.** The card list is long, so show the current picks as chips at the top of the dialog to make the selection easy to see and remove.
-4. **Highlight selected entries in the side panel.** When a map is selected, any monsters, NPCs or loot items currently picked in search are highlighted in its side panel.
-5. **Done:** matches in the map tooltip (see Search). Selecting several items at once needs items in the picker, which doesn't exist yet; today it's one typed search.
-   **Show matches in the map tooltip.** While monsters, items or NPCs are selected, the hover tooltip (`showTooltip` in `js/map.js`) gets a light blue section listing which of them are on that map. Items are grouped under the monster that drops them. Example: with Tree Branch and Leather selected, hovering an Ellinia map that only has Stumps shows:
-   ```
-   Stump
-     • Tree Branch
-   ```
-6. **Outline big towns that span several nodes (minor fix).** Some towns, such as Henesys, show up as several nodes on the map: Henesys itself, Henesys Market and Henesys Park. Draw a light blue band around all of a town's nodes so they read as one town, like the dark band drawn around the Sleepywood maps.
+1. **Highlight selected entries in the side panel.** When a map is selected, any monsters, NPCs or loot items currently picked in search are highlighted in its side panel.
+2. **Outline big towns that span several nodes (minor fix).** Some towns, such as Henesys, show up as several nodes on the map: Henesys itself, Henesys Market and Henesys Park. Draw a light blue band around all of a town's nodes so they read as one town, like the dark band drawn around the Sleepywood maps.
+3. **Pick items and NPCs in the picker.** Today only monsters can be picked; items and NPCs can only be typed, one search at a time. Picking them would allow selecting several items at once (e.g. Tree Branch and Leather) for the map tooltip.
 
 ## Known data quirks / ideas
 

@@ -2019,12 +2019,13 @@
   // ---------------------------------------------------------------------------
   // Search and monster picker.
   // - The HUD search box takes typing (also from anywhere on the map): from
-  //   SEARCH_MIN_CHARS characters, monsters whose name starts with the text get their maps
-  //   ringed when SEARCH_MAX_MOBS or fewer match; Enter jumps to a map or zooms to the rings.
-  // - The icon at the right of the box (mouse only) opens "Find farming spots": monster
-  //   cards (sprite, name coloured by difficulty, level) sorted by level. Pick any number;
-  //   every map with a picked monster gets a ring. Its filter also offers map-name chips.
-  // Rings come from, in order: what's typed in the search box, the picks, the dialog filter.
+  //   SEARCH_MIN_CHARS characters, monsters, items and NPCs whose name starts with the text
+  //   get their maps ringed when SEARCH_MAX_MOBS or fewer match; Enter jumps to a map or
+  //   zooms to the rings.
+  // - The icon at the right of the box opens "Find farming spots": monster cards (sprite,
+  //   name coloured by difficulty, level) sorted by level. Pick any number; every map with
+  //   a picked monster gets a ring. Its filter also offers map-name chips.
+  // Rings come from the typing and the picks together (see updateHighlight).
   // ---------------------------------------------------------------------------
   const search = document.getElementById("search");
   const searchHint = document.getElementById("searchHint");
