@@ -1685,6 +1685,8 @@
       h += `<p class="muted" style="margin-top:14px">${m.type === "town" ? "Town — no monsters." : "No monsters here."}</p>`;
     }
 
+    h += minimapHtml(m);
+
     // A host lists its buildings; each opens as a sub-pane.
     const blds = !inSub ? buildingsOf.get(m) || [] : [];
     if (blds.length) {
@@ -1732,7 +1734,6 @@
     } else h += `<p class="muted">None recorded yet.</p>`;
     h += `</section>`;
     h += npcHtml(m, inSub);
-    h += minimapHtml(m);
 
     if (m.exits && m.exits.length) {
       h += `<section><h3>Leads off this map</h3><div class="links">`;
@@ -2119,8 +2120,26 @@
 
   // Search box: live rings while typing.
   search.addEventListener("input", () => { typed = prefixMatches(search.value); updateHighlight(); });
-  // Enter just leaves the box; the rings stay. (Tab then Enter opens the picker instead.)
-  search.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); search.blur(); } });
+  // Enter leaves the box and moves the map: an exact map name opens that map; else it
+  // deselects and zooms to the ringed monster/NPC maps; else it opens the first matching map.
+  // The rings stay. (Tab then Enter opens the picker instead.)
+  search.addEventListener("keydown", (ev) => {
+    if (ev.key !== "Enter") return;
+    ev.preventDefault();
+    search.blur();
+    typed = prefixMatches(search.value);
+    updateHighlight();
+    const exact = maps.find((x) => x.name.toLowerCase() === typed.q);
+    if (exact) { reveal(exact); select(exact); return; }
+    const hits = new Set([...(state.mobHit?.maps || []), ...(state.npcHit?.maps || [])]);
+    if (hits.size) {
+      for (const m of hits) reveal(m);
+      select(null);
+      animateTo(fitPoints([...hits].map((m) => [m.x, m.y]), 90, 1.4));
+      return;
+    }
+    if (typed.maps[0]) { reveal(typed.maps[0]); select(typed.maps[0]); }
+  });
 
   // Picker icon: next in tab order after the box. Opens with the typed text as its filter;
   // when opened from the keyboard, focus comes back to the icon on close.
