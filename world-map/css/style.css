@@ -491,6 +491,19 @@ body.panel-open #panel { transform: none; }
 #tooltip b { font-weight: 600; }
 #tooltip .tt-lv { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
 #tooltip .chip { width: 10px; height: 10px; border-width: 1.5px; border-color: #fff8e6; }
+/* Selected search entries on the hovered map; same light blue as the search hint. */
+#tooltip .tt-hits {
+  margin: 6px -4px -1px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #d6f7f2;
+  border: 1px solid #6fd3c6;
+  color: var(--ink);
+  font-size: 12px;
+}
+#tooltip .tt-hit { font-weight: 600; }
+#tooltip .tt-hits ul { margin: 0 0 2px; padding-left: 16px; }
+#tooltip .tt-kind { font-size: 10px; font-weight: 700; color: #1d7d72; }
 
 /* Common drops, shown on hovering a monster card (picker) or monster row (panel). */
 #dropTip {

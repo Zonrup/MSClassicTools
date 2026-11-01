@@ -2,15 +2,13 @@
 
 An interactive, full-screen map of every Victoria Island map in MapleStory Classic, drawn on an HTML canvas in the style of the in-game world map. It covers fields, hidden streets, dungeons and shops. Click a node to see its monsters and links in a side panel. Each node is colored by how hard it is for your level, like World of Warcraft's quest colors.
 
-This folder is a side project inside `MSClassicMarketTools` and has no connection to the market tools. The project is not a git repo, so there's no history to fall back on. This README is the record of how everything works and why.
-
 ## Run it
 
 ```bash
-python world-map/tools/serve.py
+python3 world-map/tools/serve.py
 ```
 
-Run it from the repo root (the folder that holds `world-map/`), then open http://localhost:8765. `serve.py` is Python's file server plus `Cache-Control: no-cache`, so a normal reload always picks up edited files (plain `python -m http.server` lets the browser keep stale copies). `.claude/launch.json` in the repo root has this as the `world-map` config, so an agent can start it with `preview_start` `name: "world-map"`. Opening `index.html` straight from disk also mostly works, since the data files are scripts and not JSON.
+Run it from the repo root (the folder that holds `world-map/`), then open http://localhost:8765. `serve.py` is Python's file server plus `Cache-Control: no-cache`, so a normal reload always picks up edited files (plain `python3 -m http.server` lets the browser keep stale copies). `.claude/launch.json` in the repo root has this as the `world-map` config, so an agent can start it with `preview_start` `name: "world-map"`. Opening `index.html` straight from disk also mostly works, since the data files are scripts and not JSON.
 
 **For agents:**
 - The server may already be running (another session may have started it on port 8765). Check http://localhost:8765 first; if it answers, use it, or call `preview_start` with `name: "world-map"`, which reuses a running server. Starting a second copy on the same port fails.
@@ -21,7 +19,7 @@ Run it from the repo root (the folder that holds `world-map/`), then open http:/
 The live copy is served from the GitHub Pages site repo `Zonrup/zonrup.github.io` (an Astro site; anything in its `public/` folder is published unchanged). From this repo's root:
 
 ```bash
-python world-map/tools/deploy_pages.py <path to your zonrup.github.io checkout> --push
+python3 world-map/tools/deploy_pages.py <path to your zonrup.github.io checkout> --push
 ```
 
 It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js` scripts and `data/mobs/`) into the site repo's `public/msclassicatlas/`, replacing what was there, commits that folder and pushes. The site's own workflow then builds and publishes it in a minute or two. Leave off `--push` to look at the commit first; `--dest` changes the folder. Commit here first so the deploy commit names the right source revision.
@@ -35,6 +33,7 @@ It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js`
   - **Picker** ("Find farming spots"): the mushroom icon at the right of the search box opens a dialog of monster cards sorted by level: sprite, name coloured by difficulty at your level, level(s), map count (same-name variants merged). It's next in tab order after the box, so type → Tab → Enter opens it with the typed text as the filter (focus returns to the icon on close). Click cards to pick any number; their maps get rings, live. The picks show as "Selected" chips at the top of the dialog (`renderPickedChips`); × on a chip removes that pick. Its filter narrows the cards (substring of the monster's name or of one of its drops) and shows map-name chips that jump to the map.
   - **Drops:** hovering a card, or a monster row in the side panel, shows that monster's common drops (`showDrops`), with OSMLib's reference rate where known.
   - Rings come from what's typed and the picks together (plus the dialog filter's matches while nothing is picked). The box under the search bar has a row for each: **Typed** (what the typing matches) and **Picked**. Each row's × clears just that row; Esc on the map clears the typing first, then the picks.
+  - **Map tooltip:** while anything is typed or picked, hovering a map adds a light blue section listing which of those monsters, items and NPCs are on it (or in its buildings). Each item sits under the monster there that drops it, e.g. "Stump" with "• Tree Branch" (`selectedHereHtml`, from `state.sel`).
 - Click a node to open its details on the right. `Esc` closes the panel. The URL keeps the selected map (`#map=<id>`), so links can be shared.
 - Set your level (top left) to recolor every node and monster.
 - Toggles: **Hidden streets**, **Forgotten Hollow**, plus the **Labels** slider (None / Smart / All). They're saved in `localStorage` under `wm-prefs`.
@@ -69,7 +68,7 @@ A map's node takes the level that a third of its spawns are at or above (`HARD_S
 
 | File | What it is | Edit by hand? |
 |---|---|---|
-| `index.html` | Page shell: canvas, HUD, legend, side panel, edit bar. Loads the three scripts below in order. | Yes |
+| `index.html` | Page shell: canvas, HUD, legend, side panel, picker dialog, edit bar. Loads the `data/*.js` scripts, then `js/map.js`. | Yes |
 | `css/style.css` | Parchment-style UI. Colors are tokens on `:root`. | Yes |
 | `js/map.js` | Everything else: rendering, input, panel. One IIFE, no build step, no libraries. | Yes |
 | `data/terrain.js` | `window.WORLD_TERRAIN`: island outlines and biome patches, all hand-drawn. `rivers` is empty (the old Kerning–Sleepywood river was removed) but still supported. | Yes |
@@ -83,12 +82,15 @@ A map's node takes the level that a third of its spawns are at or above (`HARD_S
 | `data/drops.js`, `data/items/` | `window.WORLD_DROPS`: common ETC drops per monster, and the item icons. | No, re-run the scrape |
 | `tools/build_data.py` | Turns the pack into `victoria.js`. Needs `numpy`. | Yes |
 | `tools/save_positions.py` | Writes positions dumped from the running page into `victoria.js`. | Yes |
+| `tools/scrape_minimaps.py` | Fetches each map's minimap image, portals and NPCs from meowDB and writes `data/minimap_info.js`. | Yes |
+| `data/minimap_info.js`, `data/minimaps/` | `window.MINIMAP_INFO`: minimap image, portal pins and NPCs per map id, and the images. Loads deferred. | No, re-run the scrape |
+| `tools/serve.py` | Local dev server with `Cache-Control: no-cache` (see Run it). | Yes |
 
-Fonts are Fredoka and Alegreya SC, from Google Fonts.
+Fonts are Fredoka (UI), Atkinson Hyperlegible (map labels) and Alegreya SC (titles), from Google Fonts.
 
 ## Data
 
-All map and monster data comes from [meowDB](https://meowdb.com/msclassic): 246 Victoria Island maps and 75 monsters, crawled 2026-10-31.
+All map and monster data comes from [meowDB](https://meowdb.com/msclassic): 246 Victoria Island maps and 75 monsters, crawled 2026-10-31; monster drops crawled 2026-11-01.
 
 ### Monster drops
 
@@ -102,8 +104,8 @@ All map and monster data comes from [meowDB](https://meowdb.com/msclassic): 246 
 
 1. Open https://meowdb.com/msclassic/world-map, open DevTools, paste [`tools/crawl_meowdb.js`](tools/crawl_meowdb.js) into the Console and press Enter. It walks every map reachable from Henesys, plus every world-map dot (that's how it finds Florina Beach, which you can only reach by NPC). It pauses 450 ms between requests and takes about 5 minutes. Then it downloads `meowdb-pack.json`.
 2. Move that file to `data/raw/meowdb-pack.json`.
-   - Monster sprites: after rebuilding, run `python tools/fetch_mob_images.py`. It only downloads monsters that don't have a file yet. meowDB serves many sprites as animated GIFs under a `.png` URL, so the script names files by their real format.
-3. Run `python tools/build_data.py`.
+   - Monster sprites: after rebuilding, run `python3 tools/fetch_mob_images.py`. It only downloads monsters that don't have a file yet. meowDB serves many sprites as animated GIFs under a `.png` URL, so the script names files by their real format.
+3. Run `python3 tools/build_data.py`.
 
 How the crawler reads meowDB, in case meowDB changes its page format:
 - Map pages are Next.js. The data is in the `self.__next_f.push([1,"..."])` chunks: join them, then brace-match the object that contains `"connectedMaps":[`.
@@ -145,7 +147,7 @@ The game's own world map has 56 dots for Victoria Island. meowDB exposes their p
 1. **In a section:** the section's tree layout (see below). Pins don't apply here.
 2. **Pinned:** the position stored in the previous `victoria.js` with `"pinned": true`. Edit-mode drags set the pin.
    - **Catch:** `MANUAL_POS` at the top of `build_data.py` writes into the same table *after* the pins, so it wins over them. It holds hand-placed positions, by map name, for the Monkey Swamps and the Deep Forest / Damp Tree-Forest area. The values match the current pins, so nothing conflicts today. If you drag one of those maps, also update or remove its `MANUAL_POS` line.
-3. **Kept:** any other map keeps its position from the previous `victoria.js`, so a rebuild never shuffles your layout. `python tools/build_data.py --relayout` skips this step.
+3. **Kept:** any other map keeps its position from the previous `victoria.js`, so a rebuild never shuffles your layout. `python3 tools/build_data.py --relayout` skips this step.
 4. **World-map dot:** placed exactly on its dot.
 5. **Otherwise:** a small force simulation (numpy, 900 steps).
    - Links pull maps together; all maps push apart.
@@ -225,7 +227,7 @@ copy(JSON.stringify(Object.fromEntries(window.worldMap.DATA.maps.map(m => [m.id,
 Paste the result into a file, then:
 
 ```bash
-python tools/save_positions.py positions.json
+python3 tools/save_positions.py positions.json
 ```
 
 It only changes `x`, `y` and `pinned`. An agent can run the same expression with the browser pane's JS tool, but should read from the user's tab without reloading it, because unsaved moves live only in that tab.
@@ -254,7 +256,7 @@ Top to bottom:
 
 ## Gotchas
 
-- **Browser cache:** serve with `tools/serve.py` (sends `Cache-Control: no-cache`) so a normal reload gets edited files. Plain `python -m http.server` lets browsers reuse stale `map.js`/`terrain.js` until a hard refresh (Ctrl+Shift+R). The live site on GitHub Pages caches files for about 10 minutes, so a deploy can take that long to show on a normal reload. Check in a separate tab if the user is working in theirs.
+- **Browser cache:** serve with `tools/serve.py` (sends `Cache-Control: no-cache`) so a normal reload gets edited files. Plain `python3 -m http.server` lets browsers reuse stale `map.js`/`terrain.js` until a hard refresh (Ctrl+Shift+R). The live site on GitHub Pages caches files for about 10 minutes, so a deploy can take that long to show on a normal reload. Check in a separate tab if the user is working in theirs.
 - **Batched `Path2D`s need a `moveTo` before each `arc` / `ellipse`.** Without one, each shape is joined to the previous one with a straight line, and the whole batch fills as one giant zig-zag polygon. Tree shadows used to do this and drew diagonal bands across the island.
 - **Decoration knobs:**
   - Amount per biome: `decor.density` in `data/terrain.js`. Perion's mesas are at 0.8.
@@ -279,7 +281,8 @@ Feature requests, in the order we plan to tackle them.
 3. **Done:** "Selected" chips at the top of the picker, and separate Typed / Picked rows under the search bar.
    **"Selected" chip list at the top of the picker.** The card list is long, so show the current picks as chips at the top of the dialog to make the selection easy to see and remove.
 4. **Highlight selected entries in the side panel.** When a map is selected, any monsters, NPCs or loot items currently picked in search are highlighted in its side panel.
-5. **Show matches in the map tooltip.** While monsters, items or NPCs are selected, the hover tooltip (`showTooltip` in `js/map.js`) gets a light blue section listing which of them are on that map. Items are grouped under the monster that drops them. Example: with Tree Branch and Leather selected, hovering an Ellinia map that only has Stumps shows:
+5. **Done:** matches in the map tooltip (see Search). Selecting several items at once needs items in the picker, which doesn't exist yet; today it's one typed search.
+   **Show matches in the map tooltip.** While monsters, items or NPCs are selected, the hover tooltip (`showTooltip` in `js/map.js`) gets a light blue section listing which of them are on that map. Items are grouped under the monster that drops them. Example: with Tree Branch and Leather selected, hovering an Ellinia map that only has Stumps shows:
    ```
    Stump
      • Tree Branch

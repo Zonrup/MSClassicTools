@@ -1618,6 +1618,7 @@
     if (lr) {
       html += `<div class="tt-lv"><span class="chip" style="background:${DIFF[d].color}"></span>Lv ${lr.min}${lr.max !== lr.min ? "–" + lr.max : ""} · ${DIFF[d].label}</div>`;
     } else if (m.type === "town") html += `<div>Town</div>`;
+    html += selectedHereHtml(m);
     tooltip.innerHTML = html;
     tooltip.style.display = "block";
     const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
@@ -1625,6 +1626,30 @@
     tooltip.style.top = Math.min(y + 14, H - th - 8) + "px";
   }
   function hideTooltip() { tooltip.style.display = "none"; }
+
+  // Light blue tooltip section: which selected monsters, items and NPCs are on map m (or
+  // in its buildings). Each selected item is listed under the monster here that drops it.
+  function selectedHereHtml(m) {
+    const sel = state.sel;
+    if (!sel || (!sel.mobs.size && !sel.items.length && !sel.npcs.size)) return "";
+    const here = [m, ...(buildingsOf.get(m) || [])];
+    const mobNames = [...new Set(here.flatMap((x) => mobList(x).map((mob) => mob.name)))];
+    const rows = [];
+    for (const name of mobNames) {
+      const items = sel.items.filter((it) => it.mobs.has(name)).map((it) => it.name);
+      if (sel.mobs.has(name) || items.length) rows.push({ name, items });
+    }
+    const npcs = here.flatMap((x) => (window.MINIMAP_INFO?.[x.mapId]?.npcs || []).map(([, , name]) => name))
+      .filter((name, i, a) => sel.npcs.has(name) && a.indexOf(name) === i);
+    if (!rows.length && !npcs.length) return "";
+    let h = `<div class="tt-hits">`;
+    for (const r of rows) {
+      h += `<div class="tt-hit">${esc(r.name)}</div>`;
+      if (r.items.length) h += `<ul>${r.items.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`;
+    }
+    for (const name of npcs) h += `<div class="tt-hit">${esc(npcLabel(name))} <span class="tt-kind">NPC</span></div>`;
+    return h + `</div>`;
+  }
 
   const TYPE_LABEL = { town: "Town", field: "Field", hidden: "Hidden Street", dungeon: "Dungeon", boss: "Boss", safe: "Safe zone", building: "Building" };
   const panelBody = document.getElementById("panelBody");
@@ -2155,6 +2180,12 @@
     const npcGs = npcRings.map((name) => getNpcGroups().find((g) => g.name === name)).filter(Boolean);
     state.npcHit = npcGs.length ? { names: new Set(npcRings), maps: new Set(npcGs.flatMap((g) => [...g.maps])) } : null;
     paintNpcs(); // the open panel marks the found NPCs too
+    // What's selected, for the map tooltip's "on this map" section.
+    state.sel = {
+      mobs: new Set([...mobTyped, ...picked]),
+      items: itemGs.map((it) => ({ name: it.name, mobs: new Set(it.mobs) })),
+      npcs: new Set(npcGs.map((g) => g.name)),
+    };
 
     mobSelInfo.textContent = picked.size ? `${picked.size} picked · ${plural(pickedMaps, "map")}` : "Pick monsters to see where they spawn";
 
