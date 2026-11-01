@@ -34,6 +34,13 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - Selected NPCs show with an "NPC" tag (e.g. hovering Ellinia with "arwen the" typed shows "Arwen the Fairy").
 - Maps with none of the selection show the plain tooltip.
 
+### Selected entries in the side panel
+- With a map open, monster rows that are typed or picked get a light teal highlight, matching their rings on the world map.
+- A monster that drops a typed item is marked too, with a "Drops <item>" line under its stats (e.g. Stump: "Drops Tree Branch").
+- NPC rows matching the typed search are marked in the same teal, including NPCs inside the map's buildings, and so are their minimap dots (and the pin of a building holding one).
+- On the world map, every search hit (monster, item or NPC) gets the same teal ring; NPC rings used to be yellow.
+- The marks update live as the typing or picks change, and clear with them.
+
 ## Pre-existing features
 
 ### The map

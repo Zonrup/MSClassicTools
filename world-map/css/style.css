@@ -428,6 +428,10 @@ body.panel-open #panel { transform: none; }
 .mob-list .lv { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; }
 .mob-list .why { font-size: 12px; color: var(--ink-soft); width: 92px; text-align: right; }
 .mob-list .stats { font-size: 12px; color: var(--ink-soft); }
+/* Found by search: the teal of the world map's rings and the search hint. */
+.mob-list li.found { background: #d6f7f2; box-shadow: inset 3px 0 0 #2aa89a; padding-left: 9px; border-radius: 4px; }
+.mob-list .sel-drops { display: block; font-size: 12px; font-weight: 600; color: #1d7d72; }
+.mob-list .sel-drops[hidden] { display: none; }
 .mob-list a, .p-sub a { color: inherit; text-decoration-color: var(--edge); }
 .badge.verified { background: #d6f2c9; border-color: #2f6a27; color: #1f4a1a; }
 .badge.draft { background: transparent; border-style: dashed; color: var(--ink-soft); border-color: var(--ink-soft); }
@@ -607,8 +611,8 @@ body.editing #editBar { display: flex; }
   transition: width .12s, height .12s, box-shadow .12s;
 }
 .mm-npc:hover, .mm-npc.hl { width: 15px; height: 15px; z-index: 2; box-shadow: 0 0 0 2px #fff, 0 0 10px 2px rgba(255, 220, 90, .95); }
-.mm-npc.found { width: 13px; height: 13px; z-index: 1; background: #ffc94d; box-shadow: 0 0 0 2px #ffc94d, 0 0 10px 3px rgba(255, 190, 60, .9); }
-.mm-portal.npc-found { box-shadow: 0 0 0 3px #ffc94d, 0 0 12px 3px rgba(255, 190, 60, .9); }
+.mm-npc.found { width: 13px; height: 13px; z-index: 1; background: #7fe3d6; box-shadow: 0 0 0 2px #2aa89a, 0 0 10px 3px rgba(120, 230, 215, .9); }
+.mm-portal.npc-found { box-shadow: 0 0 0 3px #7fe3d6, 0 0 12px 3px rgba(120, 230, 215, .9); }
 /* Name above a pin or dot while it's hovered, focused or highlighted. */
 .mm-portal::after, .mm-npc::after {
   content: attr(data-name);
@@ -637,5 +641,6 @@ body.editing #editBar { display: flex; }
 .link-btn.picked { background: #fff1c9; border-color: var(--ink); box-shadow: inset 3px 0 0 var(--ink); }
 /* Pins into the clicked building/connected-map row keep a glow and their label. */
 .mm-portal.picked { box-shadow: 0 0 0 3px #fff, 0 0 12px 3px rgba(80, 170, 255, .95); }
-.npc-row.found { background: #fff3c4; border-color: #e0a21b; }
-.npc-row.found .npc-chip { background: #ffc94d; box-shadow: 0 0 0 2px rgba(255, 190, 60, .5); }
+/* Found by search: the same teal as monster rows and the world map's rings. */
+.npc-row.found { background: #d6f7f2; border-color: #2aa89a; }
+.npc-row.found .npc-chip { background: #7fe3d6; box-shadow: 0 0 0 2px rgba(42, 168, 154, .5); }

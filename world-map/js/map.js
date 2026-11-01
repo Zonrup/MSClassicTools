@@ -1105,25 +1105,16 @@
     }
 
     // Teal ring on every map with the searched monster.
+    // One pulsing teal ring on every map a search selects (monsters, items or NPCs).
     const mobHit = !!state.mobHit && state.mobHit.maps.has(m);
-    if (mobHit) {
+    const npcHit = !!state.npcHit && state.npcHit.maps.has(m);
+    if (mobHit || npcHit) {
       const pulse = (Math.sin(now / 300) + 1) / 2;
       ctx.beginPath();
       ctx.arc(x, y, r + 9 + pulse * 3, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(120,230,215,.3)";
       ctx.fill();
       ctx.strokeStyle = "#7fe3d6";
-      ctx.lineWidth = 3;
-      ctx.stroke();
-    }
-    // Amber ring on every map with the searched NPC (outside the teal one if both).
-    const npcHit = !!state.npcHit && state.npcHit.maps.has(m);
-    if (npcHit) {
-      const pulse = (Math.sin(now / 300 + 1.5) + 1) / 2;
-      ctx.beginPath();
-      ctx.arc(x, y, r + (mobHit ? 15 : 9) + pulse * 3, 0, Math.PI * 2);
-      if (!mobHit) { ctx.fillStyle = "rgba(255,200,80,.28)"; ctx.fill(); }
-      ctx.strokeStyle = "#ffc94d";
       ctx.lineWidth = 3;
       ctx.stroke();
     }
@@ -1735,7 +1726,7 @@
           ? `<a href="https://meowdb.com/msclassic/monsters/${mob.meowdbId}" target="_blank" rel="noopener">${esc(mob.name)}</a>`
           : esc(mob.name);
         h += `<li data-mob-name="${esc(mob.name)}"><span class="chip" style="background:${DIFF[md].color}"></span>
-          <span class="mob-name">${name}${mob.boss ? '<span class="boss-tag">BOSS</span>' : ""}${stats ? `<br><span class="stats">${stats}</span>` : ""}</span>
+          <span class="mob-name">${name}${mob.boss ? '<span class="boss-tag">BOSS</span>' : ""}${stats ? `<br><span class="stats">${stats}</span>` : ""}<span class="sel-drops" hidden></span></span>
           <span class="lv">Lv ${mob.level}</span><span class="why">${DIFF[md].label}</span></li>`;
       }
       h += `</ul></section>`;
@@ -1773,6 +1764,21 @@
     h += `<div class="p-meta">id: ${esc(m.id)} · x ${m.x}, y ${m.y}</div>`;
     panelBody.innerHTML = h;
     paintNpcs();
+    paintMobs();
+  }
+
+  // Marks monster rows that the search selects ("found"): typed or picked monsters, and
+  // monsters that drop a typed item, with a "Drops <item>" line under their stats.
+  function paintMobs() {
+    const sel = state.sel;
+    for (const row of panelBody.querySelectorAll("li[data-mob-name]")) {
+      const name = row.dataset.mobName;
+      const items = sel ? sel.items.filter((it) => it.mobs.has(name)).map((it) => it.name) : [];
+      row.classList.toggle("found", !!sel && (sel.mobs.has(name) || items.length > 0));
+      const note = row.querySelector(".sel-drops");
+      note.textContent = items.length ? `Drops ${items.join(", ")}` : "";
+      note.hidden = !items.length;
+    }
   }
 
   // meowDB minimap (data/minimap_info.js, from tools/scrape_minimaps.py) with a pin on each
@@ -2187,6 +2193,7 @@
       items: itemGs.map((it) => ({ name: it.name, mobs: new Set(it.mobs) })),
       npcs: new Set(npcGs.map((g) => g.name)),
     };
+    paintMobs(); // and the open panel's monster rows
 
     mobSelInfo.textContent = picked.size ? `${picked.size} picked · ${plural(pickedMaps, "map")}` : "Pick monsters to see where they spawn";
 

@@ -33,6 +33,7 @@ It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js`
   - **Picker** ("Find farming spots"): the mushroom icon at the right of the search box opens a dialog of monster cards sorted by level: sprite, name coloured by difficulty at your level, level(s), map count (same-name variants merged). It's next in tab order after the box, so type → Tab → Enter opens it with the typed text as the filter (focus returns to the icon on close). Click cards to pick any number; their maps get rings, live. The picks show as "Selected" chips at the top of the dialog (`renderPickedChips`); × on a chip removes that pick. Its filter narrows the cards (substring of the monster's name or of one of its drops) and shows map-name chips that jump to the map.
   - **Drops:** hovering a card, or a monster row in the side panel, shows that monster's common drops (`showDrops`), with OSMLib's reference rate where known.
   - Rings come from what's typed and the picks together (plus the dialog filter's matches while nothing is picked). The box under the search bar has a row for each: **Typed** (what the typing matches) and **Picked**. Each row's × clears just that row; Esc on the map clears the typing first, then the picks.
+  - **Side panel:** monster rows that are typed or picked, or that drop a typed item, are marked in the light teal of the world map's rings, with a "Drops <item>" line (`paintMobs`). Found NPC rows, minimap dots and building pins use the same teal (`paintNpcs`). Every search hit, monster, item or NPC, gets one teal ring on the world map.
   - **Map tooltip:** while anything is typed or picked, hovering a map adds a light blue section listing which of those monsters, items and NPCs are on it (or in its buildings). Each item sits under the monster there that drops it, e.g. "Stump" with "• Tree Branch" (`selectedHereHtml`, from `state.sel`).
 - Click a node to open its details on the right. `Esc` closes the panel. The URL keeps the selected map (`#map=<id>`), so links can be shared.
 - Set your level (top left) to recolor every node and monster.
@@ -275,9 +276,8 @@ See [FEATURES.md](FEATURES.md) for the full list of features.
 
 Feature requests, in the order we plan to tackle them. Finished ones move to [FEATURES.md](FEATURES.md).
 
-1. **Highlight selected entries in the side panel.** When a map is selected, any monsters, NPCs or loot items currently picked in search are highlighted in its side panel.
-2. **Outline big towns that span several nodes (minor fix).** Some towns, such as Henesys, show up as several nodes on the map: Henesys itself, Henesys Market and Henesys Park. Draw a light blue band around all of a town's nodes so they read as one town, like the dark band drawn around the Sleepywood maps.
-3. **Pick items and NPCs in the picker.** Today only monsters can be picked; items and NPCs can only be typed, one search at a time. Picking them would allow selecting several items at once (e.g. Tree Branch and Leather) for the map tooltip.
+1. **Outline big towns that span several nodes (minor fix).** Some towns, such as Henesys, show up as several nodes on the map: Henesys itself, Henesys Market and Henesys Park. Draw a light blue band around all of a town's nodes so they read as one town, like the dark band drawn around the Sleepywood maps.
+2. **Pick items and NPCs in the picker.** Today only monsters can be picked; items and NPCs can only be typed, one search at a time. Picking them would allow selecting several items at once (e.g. Tree Branch and Leather) for the map tooltip.
 
 ## Known data quirks / ideas
 
