@@ -30,12 +30,13 @@ It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js`
 
 - Drag to pan, scroll wheel or pinch to zoom, `Home` or ⤢ to fit everything, `+` / `-` to zoom. Typing letters, digits or space anywhere starts a search.
 - **Search** ("Search and monster picker" section of `js/map.js`):
-  - **Typing:** type in the search box, or just start typing anywhere on the map. From 2 characters (`SEARCH_MIN_CHARS`), monsters and maps whose names start with the text match (maps also ignoring a leading "The"). If 3 or fewer monster names match (`SEARCH_MAX_MOBS`), every map holding them gets a teal ring as you type. Enter just leaves the box (the rings stay). Esc on the map clears it.
-  - **Picker** ("Find farming spots"): the mushroom icon at the right of the search box opens a dialog of monster cards sorted by level: sprite, name coloured by difficulty at your level, level(s), map count (same-name variants merged). It's next in tab order after the box, so type → Tab → Enter opens it with the typed text as the filter (focus returns to the icon on close). Click cards to pick any number; their maps get rings, live. Its filter narrows the cards (substring) and shows map-name chips that jump to the map.
+  - **Typing:** type in the search box, or just start typing anywhere on the map. From 2 characters (`SEARCH_MIN_CHARS`), monsters, ETC items, NPCs and maps whose names start with the text match (maps also ignoring a leading "The"). If 3 or fewer monster names match (`SEARCH_MAX_MOBS`), every map holding them gets a teal ring as you type. The same goes for items, which ring the maps of every monster that drops them ("tree branch" rings the Stump maps), and NPCs.
+  - **Crafting stations** are NPCs on the minimaps. They also match their craft's name and "crafting station" (`STATIONS` in `js/map.js`), so "smithing" finds the Anvil and "tailoring" the Sewing Machine; matches that are all stations ring together however many there are. Enter just leaves the box (the rings stay). Esc on the map clears it.
+  - **Picker** ("Find farming spots"): the mushroom icon at the right of the search box opens a dialog of monster cards sorted by level: sprite, name coloured by difficulty at your level, level(s), map count (same-name variants merged). It's next in tab order after the box, so type → Tab → Enter opens it with the typed text as the filter (focus returns to the icon on close). Click cards to pick any number; their maps get rings, live. Its filter narrows the cards (substring of the monster's name or of one of its drops) and shows map-name chips that jump to the map.
+  - **Drops:** hovering a card, or a monster row in the side panel, shows that monster's common drops (`showDrops`), with OSMLib's reference rate where known.
   - Rings come from, in order: what's typed in the search box, the picks, the dialog filter. The × under the box clears the typing first, then the picks.
 - Click a node to open its details on the right. `Esc` closes the panel. The URL keeps the selected map (`#map=<id>`), so links can be shared.
 - Set your level (top left) to recolor every node and monster.
-- Search finds maps by name, or monsters by name (it jumps to the first map that has that monster).
 - Toggles: **Hidden streets**, **Forgotten Hollow**, plus the **Labels** slider (None / Smart / All). They're saved in `localStorage` under `wm-prefs`.
 - Labels (`drawLabels` in `js/map.js`):
   - **None:** only the hovered/selected map and search hits. **All:** every map, overlaps allowed.
@@ -78,6 +79,8 @@ A map's node takes the level that a third of its spawns are at or above (`HARD_S
 | `tools/fetch_mob_images.py` | Downloads every monster's sprite from meowDB into `data/mobs/` and writes `data/mob_images.js`. | Yes |
 | `tools/deploy_pages.py` | Copies the page into the GitHub Pages site repo and commits/pushes it (see Deploying). | Yes |
 | `data/mobs/`, `data/mob_images.js` | Monster sprites (PNG or animated GIF) and the monster key → file index. | No, re-run the fetch |
+| `tools/scrape_drops.py` | Fetches every monster's drops from meowDB and writes `data/drops.js` (see Monster drops). | Yes |
+| `data/drops.js`, `data/items/` | `window.WORLD_DROPS`: common ETC drops per monster, and the item icons. | No, re-run the scrape |
 | `tools/build_data.py` | Turns the pack into `victoria.js`. Needs `numpy`. | Yes |
 | `tools/save_positions.py` | Writes positions dumped from the running page into `victoria.js`. | Yes |
 
@@ -86,6 +89,14 @@ Fonts are Fredoka and Alegreya SC, from Google Fonts.
 ## Data
 
 All map and monster data comes from [meowDB](https://meowdb.com/msclassic): 246 Victoria Island maps and 75 monsters, crawled 2026-10-31.
+
+### Monster drops
+
+`tools/scrape_drops.py` reads meowDB's community drop lists (`/msclassic/api/drops?monsterId=<id>`): items players have confirmed in MS Classic, with up and down votes. It keeps ETC items with a net score of 3 or more (`KEEP_TYPES`, `MIN_SCORE`). Equips and USE items are left out for now. It also saves the item icons, and the OSMLib reference rates from each monster's page.
+
+- meowDB's robots.txt asks tools to email contact@meowdb.com for permission first, and approved tools to send one request every 10 seconds with the tool's name and a contact in the User-Agent, and to stop on a 403 or 429. The script keeps to the pace, user agent and stop rules.
+- It takes about 40 minutes and can be stopped and restarted; saved files are skipped. Raw responses go to `data/raw/drops/`. `python3 tools/scrape_drops.py --build` rebuilds `data/drops.js` without fetching anything.
+- `drops.js` format: `items: { <meowDB item id>: { name, sub, icon } }`, `mobs: { <monster key>: [[itemId, score, osmlibPercent or null], ...] }`, best score first.
 
 ### Refreshing the data
 
@@ -258,7 +269,8 @@ Top to bottom:
 
 Feature requests, in the order we plan to tackle them.
 
-1. **Search for loot items and crafting stations.**
+1. **Done:** search for loot items and crafting stations, and drops on monster hover (see Search and Monster drops). The details below are kept for reference.
+   **Search for loot items and crafting stations.**
    - ETC loot items that monsters drop become searchable entities, alongside monsters, NPCs and maps. Searching "tree branch" rings every map with regular Stumps.
    - Crafting stations become searchable too, and ring the maps they're on.
    - Hovering a monster card in the picker, or a monster row in the side panel, shows a list of that monster's common drops. Leave out equips for now; they may come later.

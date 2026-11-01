@@ -1709,7 +1709,7 @@
         const name = mob.meowdbId
           ? `<a href="https://meowdb.com/msclassic/monsters/${mob.meowdbId}" target="_blank" rel="noopener">${esc(mob.name)}</a>`
           : esc(mob.name);
-        h += `<li><span class="chip" style="background:${DIFF[md].color}"></span>
+        h += `<li data-mob-name="${esc(mob.name)}"><span class="chip" style="background:${DIFF[md].color}"></span>
           <span class="mob-name">${name}${mob.boss ? '<span class="boss-tag">BOSS</span>' : ""}${stats ? `<br><span class="stats">${stats}</span>` : ""}</span>
           <span class="lv">Lv ${mob.level}</span><span class="why">${DIFF[md].label}</span></li>`;
       }
@@ -1811,7 +1811,7 @@
     let h = `<section><h3>NPCs (${rows.length})</h3><div class="links">`;
     for (const r of rows) {
       h += `<button class="link-btn npc-row" data-npc="${esc(r.key)}" data-npc-name="${esc(r.name)}"${r.bld ? ` data-bld="${esc(r.bld.mapId)}"` : ""}>
-        <span class="chip npc-chip"></span><span>${esc(r.name)}${r.bld ? `<br><span class="via">in ${esc(r.bld.name)}</span>` : ""}</span></button>`;
+        <span class="chip npc-chip"></span><span>${esc(r.name)}${STATIONS[r.name] ? `<br><span class="via">${STATIONS[r.name]} station</span>` : ""}${r.bld ? `<br><span class="via">in ${esc(r.bld.name)}</span>` : ""}</span></button>`;
     }
     return h + `</div></section>`;
   }
@@ -2034,9 +2034,47 @@
   })();
   const groupByName = new Map(mobGroups.map((g) => [g.name, g]));
 
+  // Common drops (data/drops.js, from tools/scrape_drops.py): ETC items with a meowDB
+  // community vote score of 3 or more. A monster group's drops merge its variants'.
+  const DROPS = window.WORLD_DROPS || { items: {}, mobs: {} };
+  function dropsOf(ids) {
+    const byName = new Map();
+    for (const id of ids) {
+      for (const [itemId, score, osm] of DROPS.mobs[id] || []) {
+        const it = DROPS.items[itemId];
+        if (!it) continue;
+        const old = byName.get(it.name);
+        if (!old || score > old.score) byName.set(it.name, { ...it, id: itemId, score, osm: osm ?? old?.osm ?? null });
+      }
+    }
+    return [...byName.values()].sort((a, b) => b.score - a.score);
+  }
+  for (const g of mobGroups) g.drops = dropsOf(g.ids);
+
+  // One entry per item name: the monster groups that drop it and the maps they spawn on.
+  const itemGroups = (() => {
+    const byName = new Map();
+    for (const g of mobGroups) {
+      for (const d of g.drops) {
+        if (!byName.has(d.name)) byName.set(d.name, { name: d.name, icon: d.icon, mobs: [] });
+        byName.get(d.name).mobs.push(g.name);
+      }
+    }
+    return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
+  })();
+  const itemByName = new Map(itemGroups.map((it) => [it.name, it]));
+
+  // Crafting stations are NPCs on the minimaps; these also match their craft's name
+  // (and "crafting station"), so "smithing" finds the Anvil.
+  const STATIONS = {
+    "Anvil": "Smithing", "Weaponcrafting Station": "Weaponcrafting", "Sewing Machine": "Tailoring",
+    "Woodcrafting Station": "Woodcrafting", "Leatherworking Station": "Leatherworking", "Arcane Station": "Arcforge",
+  };
+  const npcLabel = (name) => (STATIONS[name] ? `${name} (${STATIONS[name]})` : name);
+
   const picked = new Set(); // monster names picked in the dialog
   let previewNames = [];    // dialog-filter matches shown while nothing is picked
-  let typed = { q: "", mobs: [], npcs: [], maps: [] }; // what the HUD search box currently matches
+  let typed = { q: "", mobs: [], npcs: [], items: [], maps: [] }; // what the HUD search box currently matches
 
   const SEARCH_MIN_CHARS = 2, SEARCH_MAX_MOBS = 3; // NPC names follow the same rules
 
@@ -2049,26 +2087,37 @@
     const byName = new Map();
     for (const m of maps) {
       for (const [, , name] of window.MINIMAP_INFO[m.mapId]?.npcs || []) {
-        if (!byName.has(name)) byName.set(name, { name, maps: new Set() });
+        if (!byName.has(name)) {
+          const craft = STATIONS[name];
+          const keys = [name, ...(craft ? [craft, `${craft} station`, "crafting station"] : [])].map((k) => k.toLowerCase());
+          byName.set(name, { name, keys, station: !!craft, maps: new Set() });
+        }
         byName.get(name).maps.add(hostOf.get(m) || m);
       }
     }
     return (npcGroups = [...byName.values()].sort((a, b) => a.name.localeCompare(b.name)));
   }
 
-  // Monster names, NPC names and maps whose names start with q (maps also ignoring a leading "The").
+  // Monster, item and NPC names and maps whose names start with q (maps also ignoring a
+  // leading "The"; crafting stations also by craft name).
   function prefixMatches(raw) {
     const q = raw.trim().toLowerCase();
-    if (q.length < SEARCH_MIN_CHARS) return { q, mobs: [], npcs: [], maps: [] };
+    if (q.length < SEARCH_MIN_CHARS) return { q, mobs: [], npcs: [], items: [], maps: [] };
     const starts = (g) => g.name.toLowerCase().startsWith(q);
-    return { q, mobs: mobGroups.filter(starts).map((g) => g.name), npcs: getNpcGroups().filter(starts).map((g) => g.name), maps: mapMatches(q) };
+    return {
+      q,
+      mobs: mobGroups.filter(starts).map((g) => g.name),
+      npcs: getNpcGroups().filter((g) => g.keys.some((k) => k.startsWith(q))).map((g) => g.name),
+      items: itemGroups.filter(starts).map((it) => it.name),
+      maps: mapMatches(q),
+    };
   }
 
   function filterText() { return mobFilter.value.trim().toLowerCase(); }
   function mobMatchesFilter(g, q) {
     if (!q) return true;
     const n = g.name.toLowerCase();
-    return n.includes(q);
+    return n.includes(q) || g.drops.some((d) => d.name.toLowerCase().includes(q)); // "branch" finds Stumps
   }
   function mapMatches(q) {
     if (q.length < SEARCH_MIN_CHARS) return [];
@@ -2080,14 +2129,19 @@
   const typedRings = () => (typed.mobs.length && typed.mobs.length <= SEARCH_MAX_MOBS ? typed.mobs : []);
 
   function updateHighlight() {
-    const fromTyping = typedRings();
+    // A typed item rings the maps of every monster that drops it.
+    const mobTyped = typedRings();
+    const itemGs = (typed.items.length <= SEARCH_MAX_MOBS ? typed.items : []).map((n) => itemByName.get(n)).filter(Boolean);
+    const fromTyping = [...new Set([...mobTyped, ...itemGs.flatMap((it) => it.mobs)])];
     const names = fromTyping.length ? fromTyping : picked.size ? [...picked] : previewNames;
     const groups = names.map((n) => groupByName.get(n)).filter(Boolean);
     // A monster inside a building rings the building's host (buildings aren't drawn).
     state.mobHit = groups.length ? { ids: groups.flatMap((g) => g.ids), maps: new Set(groups.flatMap((g) => [...g.maps].map((m) => hostOf.get(m) || m))) } : null;
     const n = state.mobHit ? state.mobHit.maps.size : 0;
 
-    const npcRings = typed.npcs.length <= SEARCH_MAX_MOBS ? typed.npcs : [];
+    // Crafting stations ring together however many match ("crafting station" finds all six).
+    const isStation = (name) => !!STATIONS[name];
+    const npcRings = typed.npcs.length <= SEARCH_MAX_MOBS || typed.npcs.every(isStation) ? typed.npcs : [];
     const npcGs = npcRings.map((name) => getNpcGroups().find((g) => g.name === name)).filter(Boolean);
     state.npcHit = npcGs.length ? { names: new Set(npcRings), maps: new Set(npcGs.flatMap((g) => [...g.maps])) } : null;
     paintNpcs(); // the open panel marks the found NPCs too
@@ -2097,9 +2151,13 @@
     // Hint under the search box: what the typing matches, else the picks.
     const parts = [];
     if (typed.q.length >= SEARCH_MIN_CHARS) {
-      if (fromTyping.length) parts.push(`${groups.map((g) => `${g.name} (Lv ${g.levels.join("/")})`).join(", ")} · ${plural(n, "map")}`);
+      const hitParts = [];
+      if (mobTyped.length) hitParts.push(mobTyped.map((name) => { const g = groupByName.get(name); return `${g.name} (Lv ${g.levels.join("/")})`; }).join(", "));
       else if (typed.mobs.length) parts.push(`${typed.mobs.length} monsters match, keep typing`);
-      if (npcGs.length) parts.push(`NPC ${npcGs.map((g) => g.name).join(", ")} · ${plural(state.npcHit.maps.size, "map")}`);
+      if (itemGs.length) hitParts.push(itemGs.map((it) => `${it.name} (from ${it.mobs.join(", ")})`).join(", "));
+      else if (typed.items.length) parts.push(`${typed.items.length} items match, keep typing`);
+      if (hitParts.length) parts.unshift(`${hitParts.join(", ")} · ${plural(n, "map")}`);
+      if (npcGs.length) parts.push(`NPC ${npcGs.map((g) => npcLabel(g.name)).join(", ")} · ${plural(state.npcHit.maps.size, "map")}`);
       else if (typed.npcs.length) parts.push(`${typed.npcs.length} NPCs match, keep typing`);
       if (typed.maps.length) parts.push(`${plural(typed.maps.length, "map name")} match`);
     } else if (picked.size) {
@@ -2118,7 +2176,7 @@
     mobGrid.innerHTML = shown.length ? shown.map((g) => {
       const d = diffFor(g.level, state.level);
       const lv = `Lv ${g.levels.join("/")}${g.boss ? " · Boss" : ""}`;
-      return `<button type="button" class="mob-card${picked.has(g.name) ? " sel" : ""}" data-name="${esc(g.name)}" title="${esc(`${g.name}: ${DIFF[d].label}, on ${g.maps.size} map${g.maps.size === 1 ? "" : "s"}`)}">
+      return `<button type="button" class="mob-card${picked.has(g.name) ? " sel" : ""}" data-name="${esc(g.name)}" aria-label="${esc(`${g.name}: ${DIFF[d].label}, on ${g.maps.size} map${g.maps.size === 1 ? "" : "s"}`)}">
         <div class="sprite">${g.img ? `<img src="${esc(g.img)}" alt="" loading="lazy">` : ""}</div>
         <div class="mob-name" style="color:${DIFF[d].color}">${esc(g.name)}</div>
         <div class="mob-lv">${lv} · ${g.maps.size} map${g.maps.size === 1 ? "" : "s"}</div>
@@ -2142,7 +2200,28 @@
     mobFilter.focus();
     mobFilter.setSelectionRange(mobFilter.value.length, mobFilter.value.length);
   }
+  // Popup listing a monster group's common drops, beside the hovered card or panel row.
+  const dropTip = document.getElementById("dropTip");
+  function showDrops(g, anchor) {
+    const d = DIFF[diffFor(g.level, state.level)];
+    let h = `<div class="dt-head">${esc(g.name)}</div><div class="dt-sub">Lv ${g.levels.join("/")} · ${d.label} · ${plural(g.maps.size, "map")}</div>`;
+    if (g.drops.length) {
+      h += `<ul>${g.drops.map((x) => `<li>${x.icon ? `<img src="${esc(x.icon)}" alt="">` : `<span class="dt-noicon"></span>`}
+        <span class="dt-name">${esc(x.name)}${x.sub ? `<small>${esc(x.sub)}</small>` : ""}</span>
+        ${x.osm != null ? `<span class="dt-rate" title="OSMLib reference rate">${x.osm}%</span>` : ""}</li>`).join("")}</ul>`;
+    } else h += `<div class="dt-none">No common ETC drops recorded</div>`;
+    dropTip.innerHTML = h;
+    dropTip.hidden = false;
+    // Right of the anchor if it fits, else left; kept inside the window.
+    const r = anchor.getBoundingClientRect(), tw = dropTip.offsetWidth, th = dropTip.offsetHeight;
+    const x = r.right + 8 + tw <= innerWidth - 8 ? r.right + 8 : Math.max(8, r.left - 8 - tw);
+    dropTip.style.left = x + "px";
+    dropTip.style.top = Math.max(8, Math.min(r.top, innerHeight - th - 8)) + "px";
+  }
+  function hideDrops() { dropTip.hidden = true; }
+
   function closeMobDialog() {
+    hideDrops();
     mobDialog.hidden = true;
     previewNames = [];
     updateHighlight();
@@ -2210,6 +2289,19 @@
     card.classList.toggle("sel", picked.has(name));
     updateHighlight();
   });
+  mobGrid.addEventListener("mouseover", (ev) => {
+    const card = ev.target.closest(".mob-card");
+    const g = card && groupByName.get(card.dataset.name);
+    if (g) showDrops(g, card); else hideDrops();
+  });
+  mobGrid.addEventListener("mouseleave", hideDrops);
+  panelBody.addEventListener("mouseover", (ev) => {
+    const row = ev.target.closest("li[data-mob-name]");
+    const g = row && groupByName.get(row.dataset.mobName);
+    if (g) showDrops(g, row); else hideDrops();
+  });
+  panelBody.addEventListener("mouseleave", hideDrops);
+  panelBody.addEventListener("scroll", hideDrops);
   mapChips.addEventListener("click", (ev) => {
     const m = byId.get(ev.target.closest("button[data-map]")?.dataset.map);
     if (!m) return;

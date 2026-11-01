@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "world-map",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": ["world-map/tools/serve.py", "8765"],
       "port": 8765
     }

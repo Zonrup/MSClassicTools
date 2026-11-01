@@ -28,7 +28,7 @@
       </div>
       <input type="range" id="lvlRange" min="1" max="100" value="30">
       <div class="search-row">
-        <input type="search" id="search" placeholder="Find an NPC/Monster/Map" autocomplete="off">
+        <input type="search" id="search" placeholder="Find a monster, item, NPC or map" autocomplete="off">
         <button type="button" id="pickerBtn" class="picker-btn" aria-label="Pick monsters visually" title="Pick monsters visually"><img src="data/mobs/mob_9.gif" alt=""></button>
       </div>
       <div id="searchHint" class="search-hint" hidden><span id="searchHintText"></span><button type="button" id="searchClear" title="Clear (Esc)">×</button></div>
@@ -57,6 +57,7 @@
   </aside>
 
   <div id="tooltip"></div>
+  <div id="dropTip" hidden></div>
 
   <div id="editBar" class="card">
     <strong>Edit mode</strong>
@@ -74,7 +75,7 @@
         <h2 id="mobDialogTitle">Find farming spots</h2>
         <button type="button" class="close" id="mobDialogClose" title="Close (Esc)">×</button>
       </header>
-      <input type="search" id="mobFilter" placeholder="Filter monsters, or type a map name…" autocomplete="off">
+      <input type="search" id="mobFilter" placeholder="Filter monsters or drops, or type a map name…" autocomplete="off">
       <div id="mapChips" class="map-chips" hidden></div>
       <div id="mobGrid" class="mob-grid"></div>
       <footer>
@@ -88,6 +89,7 @@
   <script src="data/terrain.js"></script>
   <script src="data/victoria.js"></script>
   <script src="data/mob_images.js"></script>
+  <script src="data/drops.js"></script>
   <script src="data/minimap_info.js" defer></script>
   <script src="js/map.js"></script>
 </body>

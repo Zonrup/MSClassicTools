@@ -483,6 +483,30 @@ body.panel-open #panel { transform: none; }
 #tooltip .tt-lv { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
 #tooltip .chip { width: 10px; height: 10px; border-width: 1.5px; border-color: #fff8e6; }
 
+/* Common drops, shown on hovering a monster card (picker) or monster row (panel). */
+#dropTip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 60; /* above the picker dialog */
+  background: rgba(40, 26, 12, .94);
+  color: #fff8e6;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.3;
+  width: 240px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
+}
+#dropTip .dt-head { font-weight: 600; }
+#dropTip .dt-sub { font-size: 11px; opacity: .75; margin-bottom: 6px; }
+#dropTip ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+#dropTip li { display: flex; align-items: center; gap: 6px; }
+#dropTip li img, #dropTip li .dt-noicon { width: 22px; height: 22px; object-fit: contain; flex: none; }
+#dropTip li .dt-name { flex: 1; min-width: 0; }
+#dropTip li .dt-name small { display: block; font-size: 10.5px; opacity: .65; }
+#dropTip li .dt-rate { font-size: 11px; opacity: .8; font-variant-numeric: tabular-nums; }
+#dropTip .dt-none { opacity: .75; font-style: italic; }
+
 /* ---------- Edit bar ---------- */
 #editBar {
   position: fixed;
