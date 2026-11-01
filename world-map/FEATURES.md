@@ -41,6 +41,13 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - On the world map, every search hit (monster, item or NPC) gets the same teal ring; NPC rings used to be yellow.
 - The marks update live as the typing or picks change, and clear with them.
 
+### Town outline
+- Towns that span several nodes sit inside one light blue band, so they read as one town:
+  - Henesys, with Henesys Market and Henesys Park;
+  - Kerning City, with Niora Hospital and the Subway Ticketing Booth.
+- The band is one rounded blob covering the area between the town's maps, even where they don't link to each other.
+- Links, nodes and labels draw on top of the band.
+
 ## Pre-existing features
 
 ### The map

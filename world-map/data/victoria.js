@@ -1625,8 +1625,8 @@ window.WORLD_DATA = {
    "region": "henesys",
    "type": "safe",
    "street": "Victoria Road",
-   "x": 1797,
-   "y": 2095,
+   "x": 1804,
+   "y": 2126,
    "mobs": [],
    "links": [
     "henesys_department_store",
@@ -1711,8 +1711,8 @@ window.WORLD_DATA = {
    "region": "henesys",
    "type": "safe",
    "street": "Victoria Road",
-   "x": 1881,
-   "y": 2178,
+   "x": 1863,
+   "y": 2191,
    "mobs": [],
    "links": [
     "bowman_instructional_school",
@@ -3155,8 +3155,8 @@ window.WORLD_DATA = {
    "region": "kerning_city",
    "type": "safe",
    "street": "Victoria Road",
-   "x": 563,
-   "y": 911,
+   "x": 539,
+   "y": 988,
    "mobs": [],
    "links": [
     "the_murky_swamp_i"
@@ -3614,7 +3614,7 @@ window.WORLD_DATA = {
    "type": "safe",
    "street": "Victoria Road",
    "x": 495,
-   "y": 1038,
+   "y": 1068,
    "mobs": [],
    "links": [
     "line_1_area_1"

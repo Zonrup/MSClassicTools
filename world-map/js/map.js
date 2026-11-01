@@ -901,6 +901,56 @@
     shape(0, "#3a3348");
   }
 
+  // Towns that span several nodes: a light blue band around all of a town's maps, so they
+  // read as one town. It covers the area between them (their convex hull, with rounded
+  // edges), since a town's maps don't always link to each other (Kerning City's don't).
+  // Hand-picked: only maps that are really part of the town belong here.
+  const TOWN_GROUPS = [
+    { town: "henesys", maps: ["henesys", "henesys_market", "henesys_park"] },
+    { town: "kerning_city", maps: ["kerning_city", "niora_hospital", "subway_ticketing_booth"] },
+  ].map((g) => ({ ...g, members: new Set(g.maps.map((id) => byId.get(id)).filter(Boolean)) }));
+  // Convex hull of [x, y] points (monotone chain), counter-clockwise.
+  function convexHull(pts) {
+    const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    if (p.length < 3) return p;
+    const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const half = (list) => {
+      const out = [];
+      for (const q of list) {
+        while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], q) <= 0) out.pop();
+        out.push(q);
+      }
+      out.pop();
+      return out;
+    };
+    return [...half(p), ...half([...p].reverse())];
+  }
+  function drawTowns() {
+    setWorldTransform();
+    const R = 46;
+    for (const g of TOWN_GROUPS) {
+      const members = [...g.members].filter(isVisible);
+      if (members.length < 2) continue;
+      const hull = convexHull(members.map((m) => [m.x, m.y]));
+      // The hull's outline drawn R wide with round joins is the hull grown by R on every side.
+      const shape = (extra, color) => {
+        ctx.fillStyle = color;
+        ctx.strokeStyle = color;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.lineWidth = (R + extra) * 2;
+        ctx.beginPath();
+        hull.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+      };
+      // A slightly wider darker blue first, so the fill on top gets an outline.
+      shape(5, "#7fb6e6");
+      shape(0, "#cfe8fb");
+    }
+  }
+
   function drawClouds() {
     setWorldTransform();
     ctx.strokeStyle = "#5a6f93";
@@ -1401,6 +1451,7 @@
       drawTerrain();
       drawSections();
       drawCaves();
+      drawTowns();
       drawEdges();
       setScreenTransform();
       const list = maps.filter(isVisible).sort((p, q) => (p.type === "town") - (q.type === "town") || p.y - q.y);

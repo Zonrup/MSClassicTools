@@ -163,6 +163,7 @@ Today, every island map is pinned or kept, so steps 4–5 only matter for new ma
 
 - `boss`: every monster on the map is a boss (The Cursed Sanctuary).
 - `town`: world-map town/area dots, plus hubs that open onto hunting maps, such as Sleepywood and Forgotten Hollow.
+  - Towns that span several nodes get a light blue band around all their maps (`TOWN_GROUPS` and `drawTowns` in `js/map.js`). The band covers the convex hull of the town's maps with rounded edges, since a town's maps don't always link to each other. The list is hand-picked: Henesys (with Henesys Market and Henesys Park) and Kerning City (with Niora Hospital and the Subway Ticketing Booth).
 - `hidden`: the street name says Hidden Street.
 - `building`: no monsters and only one exit (shops, houses, saunas). Never drawn on the map. Each building's one linked map is its **host** (`hostOf` / `buildingsOf` in `js/map.js`): a town, or a spot like Henesys Market or Sleepywood Hotel. The host's panel lists its buildings under **Buildings**; clicking one opens it as a sub-pane (`panelSub`) with **← Back to <host>** and its connected maps. Selecting a building anywhere (search, a `#map=` link, a panel link) selects the host and opens that sub-pane. A monster search that matches a building rings its host.
 - `safe`: no monsters but more than one exit.
@@ -247,7 +248,7 @@ Top to bottom:
 5. **Terrain:** the island, biomes, river and decorations, built once into batched `Path2D`s. Scenery is scaled by `DS = scale / 3.75`, because it was first drawn for a smaller world.
 6. **Drawing:**
    - Terrain, edges and caves are drawn in world space. Nodes, labels and edge dots are drawn in screen space, so they stay readable at any zoom.
-   - Draw order: terrain → section plates → caves → edges → nodes → labels (see Labels above) → section markers → clouds → vignette.
+   - Draw order: terrain → section plates → caves → town bands → edges → nodes → labels (see Labels above) → section markers → clouds → vignette.
    - The canvas only redraws when `needsDraw` is set.
 7. **Camera:** `fitTarget` (the islands plus visible section panels), `animateTo`, `zoomAt`, `flyTo`.
 8. **Input:** pointer pan, pinch and drag; `hitNode` falls back to section entrance and portal markers.
@@ -276,8 +277,7 @@ See [FEATURES.md](FEATURES.md) for the full list of features.
 
 Feature requests, in the order we plan to tackle them. Finished ones move to [FEATURES.md](FEATURES.md).
 
-1. **Outline big towns that span several nodes (minor fix).** Some towns, such as Henesys, show up as several nodes on the map: Henesys itself, Henesys Market and Henesys Park. Draw a light blue band around all of a town's nodes so they read as one town, like the dark band drawn around the Sleepywood maps.
-2. **Pick items and NPCs in the picker.** Today only monsters can be picked; items and NPCs can only be typed, one search at a time. Picking them would allow selecting several items at once (e.g. Tree Branch and Leather) for the map tooltip.
+1. **Pick items and NPCs in the picker.** Today only monsters can be picked; items and NPCs can only be typed, one search at a time. Picking them would allow selecting several items at once (e.g. Tree Branch and Leather) for the map tooltip.
 
 ## Known data quirks / ideas
 
