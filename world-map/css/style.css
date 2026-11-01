@@ -158,7 +158,6 @@ html, body {
 .picker-btn.on { background: #d6f7f2; box-shadow: inset 0 0 0 2px #2aa89a; }
 .search-hint {
   margin-top: -4px;
-  padding: 3px 4px 3px 8px;
   border-radius: 6px;
   background: #d6f7f2;
   border: 1px solid #6fd3c6;
@@ -166,12 +165,22 @@ html, body {
   font-weight: 600;
   color: var(--ink);
   display: flex;
-  align-items: center;
-  gap: 4px;
+  flex-direction: column;
 }
-.search-hint span { flex: 1; }
-.search-hint button { border: 0; background: transparent; font-size: 16px; line-height: 1; cursor: pointer; color: var(--ink-soft); }
-.search-hint[hidden] { display: none; }
+.search-hint[hidden], .hint-row[hidden] { display: none; }
+.hint-row { display: flex; align-items: baseline; gap: 6px; padding: 3px 4px 3px 8px; }
+.hint-row + .hint-row { border-top: 1px solid #6fd3c6; }
+.hint-tag { flex: none; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #1d7d72; }
+.hint-text { flex: 1; min-width: 0; }
+.hint-row button { flex: none; border: 0; background: transparent; font-size: 16px; line-height: 1; cursor: pointer; color: var(--ink-soft); }
+.hint-row button:hover { color: var(--ink); }
+
+/* "Selected" chips at the top of the picker. */
+.picked-chips { max-height: 72px; overflow-y: auto; }
+.picked-chips button { display: inline-flex; align-items: center; gap: 4px; border-color: #2aa89a; background: #e3f9f5; padding: 1px 6px 1px 4px; }
+.picked-chips button img { height: 18px; max-width: 24px; object-fit: contain; }
+.picked-chips button b { font-size: 14px; line-height: 1; color: var(--ink-soft); margin-left: 2px; }
+.picked-chips button:hover b { color: var(--ink); }
 
 /* ---------- Monster picker dialog ---------- */
 .dialog-backdrop {

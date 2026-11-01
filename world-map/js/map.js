@@ -2002,7 +2002,10 @@
   // Rings come from, in order: what's typed in the search box, the picks, the dialog filter.
   // ---------------------------------------------------------------------------
   const search = document.getElementById("search");
-  const searchHint = document.getElementById("searchHint"), searchHintText = document.getElementById("searchHintText");
+  const searchHint = document.getElementById("searchHint");
+  const hintTyped = document.getElementById("hintTyped"), hintTypedText = document.getElementById("hintTypedText");
+  const hintPicked = document.getElementById("hintPicked"), hintPickedText = document.getElementById("hintPickedText");
+  const pickedChips = document.getElementById("pickedChips");
   const mobDialog = document.getElementById("mobDialog"), mobFilter = document.getElementById("mobFilter");
   const mobGrid = document.getElementById("mobGrid"), mapChips = document.getElementById("mapChips");
   const mobSelInfo = document.getElementById("mobSelInfo"), pickerBtn = document.getElementById("pickerBtn");
@@ -2128,16 +2131,23 @@
   const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
   const typedRings = () => (typed.mobs.length && typed.mobs.length <= SEARCH_MAX_MOBS ? typed.mobs : []);
 
+  // Maps that a list of monster groups rings. A monster inside a building rings the
+  // building's host (buildings aren't drawn).
+  const ringMaps = (groups) => new Set(groups.flatMap((g) => [...g.maps].map((m) => hostOf.get(m) || m)));
+
+  // Rings come from the typing and the picks together (plus the dialog filter's preview
+  // while nothing is picked). The box under the search bar lists each in its own row.
   function updateHighlight() {
     // A typed item rings the maps of every monster that drops it.
     const mobTyped = typedRings();
     const itemGs = (typed.items.length <= SEARCH_MAX_MOBS ? typed.items : []).map((n) => itemByName.get(n)).filter(Boolean);
     const fromTyping = [...new Set([...mobTyped, ...itemGs.flatMap((it) => it.mobs)])];
-    const names = fromTyping.length ? fromTyping : picked.size ? [...picked] : previewNames;
-    const groups = names.map((n) => groupByName.get(n)).filter(Boolean);
-    // A monster inside a building rings the building's host (buildings aren't drawn).
-    state.mobHit = groups.length ? { ids: groups.flatMap((g) => g.ids), maps: new Set(groups.flatMap((g) => [...g.maps].map((m) => hostOf.get(m) || m))) } : null;
-    const n = state.mobHit ? state.mobHit.maps.size : 0;
+    const fromPicks = picked.size ? [...picked] : previewNames;
+    const groups = [...new Set([...fromTyping, ...fromPicks])].map((n) => groupByName.get(n)).filter(Boolean);
+    state.mobHit = groups.length ? { ids: groups.flatMap((g) => g.ids), maps: ringMaps(groups) } : null;
+    const typedMaps = ringMaps(fromTyping.map((n) => groupByName.get(n)).filter(Boolean)).size;
+    const pickedGroups = [...picked].map((n) => groupByName.get(n)).filter(Boolean);
+    const pickedMaps = ringMaps(pickedGroups).size;
 
     // Crafting stations ring together however many match ("crafting station" finds all six).
     const isStation = (name) => !!STATIONS[name];
@@ -2146,9 +2156,9 @@
     state.npcHit = npcGs.length ? { names: new Set(npcRings), maps: new Set(npcGs.flatMap((g) => [...g.maps])) } : null;
     paintNpcs(); // the open panel marks the found NPCs too
 
-    mobSelInfo.textContent = picked.size ? `${picked.size} picked · ${plural(n, "map")}` : "Pick monsters to see where they spawn";
+    mobSelInfo.textContent = picked.size ? `${picked.size} picked · ${plural(pickedMaps, "map")}` : "Pick monsters to see where they spawn";
 
-    // Hint under the search box: what the typing matches, else the picks.
+    // Typed row: what the typing matches.
     const parts = [];
     if (typed.q.length >= SEARCH_MIN_CHARS) {
       const hitParts = [];
@@ -2156,18 +2166,35 @@
       else if (typed.mobs.length) parts.push(`${typed.mobs.length} monsters match, keep typing`);
       if (itemGs.length) hitParts.push(itemGs.map((it) => `${it.name} (from ${it.mobs.join(", ")})`).join(", "));
       else if (typed.items.length) parts.push(`${typed.items.length} items match, keep typing`);
-      if (hitParts.length) parts.unshift(`${hitParts.join(", ")} · ${plural(n, "map")}`);
+      if (hitParts.length) parts.unshift(`${hitParts.join(", ")} · ${plural(typedMaps, "map")}`);
       if (npcGs.length) parts.push(`NPC ${npcGs.map((g) => npcLabel(g.name)).join(", ")} · ${plural(state.npcHit.maps.size, "map")}`);
       else if (typed.npcs.length) parts.push(`${typed.npcs.length} NPCs match, keep typing`);
       if (typed.maps.length) parts.push(`${plural(typed.maps.length, "map name")} match`);
-    } else if (picked.size) {
-      parts.push(`${groups.map((g) => g.name).join(", ")} · ${plural(n, "map")}`);
+      if (!parts.length) parts.push("No matches");
     }
-    searchHintText.textContent = parts.join(" · ");
-    searchHint.hidden = !parts.length;
+    hintTypedText.textContent = parts.join(" · ");
+    hintTyped.hidden = !parts.length;
+    // Picked row: the picker's selection.
+    hintPickedText.textContent = pickedGroups.length ? `${pickedGroups.map((g) => g.name).join(", ")} · ${plural(pickedMaps, "map")}` : "";
+    hintPicked.hidden = !pickedGroups.length;
+    searchHint.hidden = hintTyped.hidden && hintPicked.hidden;
+
+    renderPickedChips();
     pickerBtn.classList.toggle("on", picked.size > 0);
     pickerBtn.title = picked.size ? `${plural(picked.size, "monster")} picked. Click to change` : "Pick monsters visually";
     needsDraw = true;
+  }
+
+  // "Selected" chips at the top of the picker; × on a chip unpicks that monster.
+  function renderPickedChips() {
+    pickedChips.hidden = !picked.size;
+    pickedChips.innerHTML = picked.size
+      ? `<span class="chip-label">Selected:</span>` + [...picked].map((name) => {
+        const g = groupByName.get(name);
+        const img = g && g.img ? `<img src="${esc(g.img)}" alt="">` : "";
+        return `<button type="button" data-unpick="${esc(name)}" title="Remove ${esc(name)}">${img}<span>${esc(name)}</span><b aria-hidden="true">×</b></button>`;
+      }).join("")
+      : "";
   }
 
   function renderMobGrid() {
@@ -2275,7 +2302,14 @@
     openMobDialog(search.value.trim());
   });
   pickerBtn.addEventListener("mousedown", (ev) => ev.preventDefault()); // a mouse click doesn't move focus
-  document.getElementById("searchClear").addEventListener("click", clearSearch);
+  document.getElementById("hintTypedClear").addEventListener("click", () => { search.value = ""; typed = prefixMatches(""); updateHighlight(); });
+  document.getElementById("hintPickedClear").addEventListener("click", clearPicked);
+  pickedChips.addEventListener("click", (ev) => {
+    const name = ev.target.closest("button[data-unpick]")?.dataset.unpick;
+    if (!name) return;
+    picked.delete(name);
+    renderMobGrid(); // unmarks the card and updates the rings
+  });
   document.getElementById("mobDialogClose").addEventListener("click", closeMobDialog);
   document.getElementById("mobClear").addEventListener("click", clearPicked);
   document.getElementById("mobShow").addEventListener("click", showPickedOnMap);
