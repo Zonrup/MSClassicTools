@@ -81,7 +81,7 @@ A map's node takes the level that a third of its spawns are at or above (`HARD_S
 | `tools/crawl_meowdb.js` | Browser-console script that crawls meowDB and downloads the pack. | Yes |
 | `tools/fetch_mob_images.py` | Downloads every monster's sprite from meowDB into `data/mobs/` and writes `data/mob_images.js`. | Yes |
 | `tools/deploy_pages.py` | Copies the page into the GitHub Pages site repo and commits/pushes it (see Deploying). | Yes |
-| `data/mobs/`, `data/mob_images.js` | Monster sprites (PNG or animated GIF) and the monster key → file index. The four largest PNGs (Sporewood 63, Myewood 61, Rotten Mushmom 700003, Rafflesia 59) are shrunk to 144 px tall with a 256-colour palette (about 8 kB each instead of 31–112 kB); the full-size downloads are kept as `mob_<id>_original.png`, which the page doesn't load and the deploy leaves out. | No, re-run the fetch |
+| `data/mobs/`, `data/mob_images.js` | Monster sprites and the monster key → file index. Compressed by `tools/compress_images.py`: PNGs are 256-colour palette images at most 144 px tall, and the animated GIFs are now lossless animated WebP. The downloads are kept as `mob_<id>_original.png` / `.gif`, which the page doesn't load and the deploy leaves out. | No, re-run the fetch, then the compression |
 | `tools/scrape_drops.py` | Fetches every monster's drops from meowDB and writes `data/drops.js` (see Monster drops). | Yes |
 | `data/drops.js`, `data/items/` | `window.WORLD_DROPS`: common ETC drops per monster, and the item icons. | No, re-run the scrape |
 | `tools/build_rankings.py` | Builds the default map rankings from `victoria.js` (see Map rankings). | Yes |
@@ -89,7 +89,8 @@ A map's node takes the level that a third of its spawns are at or above (`HARD_S
 | `tools/build_data.py` | Turns the pack into `victoria.js`. Needs `numpy`. | Yes |
 | `tools/save_positions.py` | Writes positions dumped from the running page into `victoria.js`. | Yes |
 | `tools/scrape_minimaps.py` | Fetches each map's minimap image, portals and NPCs from meowDB and writes `data/minimap_info.js`. Refuses to replace an existing `minimap_info.js` without `--force_overwrite_existing_data`. | Yes |
-| `data/minimap_info.js`, `data/minimaps/` | `window.MINIMAP_INFO`: minimap image, portal pins and NPCs per map id, and the images. Loads deferred. | No, re-run the scrape |
+| `data/minimap_info.js`, `data/minimaps/` | `window.MINIMAP_INFO`: minimap image, portal pins and NPCs per map id, and the images (256-colour palette PNGs from `tools/compress_images.py`; the downloads are kept as `<mapId>_original.png`). Loads deferred. | No, re-run the scrape, then the compression |
+| `tools/compress_images.py` | Halves the size of minimaps and monster sprites (palette PNGs, animated WebP), keeping each original as `*_original.*`. Safe to re-run: files that already have an original are skipped. Needs Pillow. | Yes |
 | `tools/serve.py` | Local dev server with `Cache-Control: no-cache` (see Run it). | Yes |
 
 Fonts are Fredoka (UI), Atkinson Hyperlegible (map labels) and Alegreya SC (titles), from Google Fonts.
