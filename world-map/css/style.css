@@ -291,8 +291,8 @@ html, body {
 .label-mode { display: flex; flex-direction: column; gap: 2px; }
 .label-mode > label { font-weight: 600; }
 .label-mode .ticks { display: flex; justify-content: space-between; font-size: 12px; }
-.label-mode .ticks span { cursor: pointer; padding: 0 2px; opacity: .6; }
-.label-mode .ticks span.on { font-weight: 700; opacity: 1; color: var(--ink); }
+.label-mode .ticks > span { cursor: pointer; padding: 0 2px; opacity: .6; }
+.label-mode .ticks > span.on { font-weight: 700; opacity: 1; color: var(--ink); }
 .check input { accent-color: var(--accent); }
 
 .btn {
@@ -531,7 +531,9 @@ body.panel-open #panel { transform: none; }
   color: var(--ink);
   font-size: 12px;
 }
-#tooltip .tt-hit { font-weight: 600; }
+#tooltip { max-width: 300px; }
+#tooltip .tt-hit { font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#tooltip .tt-hit .rk-stars { flex: none; font-size: 12px; }
 #tooltip .tt-hits ul { margin: 0 0 2px; padding-left: 16px; }
 #tooltip .tt-kind { font-size: 10px; font-weight: 700; color: #1d7d72; }
 
@@ -721,6 +723,13 @@ body.editing #editBar { display: flex; }
 .rank-tier[data-tier="best"] { background: #cdeec9; }
 .rank-tier[data-tier="okay"] { background: #f6e7b4; }
 .rank-tier[data-tier="meh"] { background: #e6ddd0; }
+.rk-stars { display: inline-flex; gap: 1px; font-size: 14px; line-height: 1; letter-spacing: 0; }
+.rk-stars span { color: transparent; -webkit-text-stroke: 1px #9a8466; }
+.label-mode .ticks .rk-stars { display: flex; font-size: 11px; justify-content: inherit; }
+#rankTicks > span { display: flex; flex-direction: column; align-items: center; }
+#rankTicks > span:first-child { align-items: flex-start; }
+#rankTicks > span:last-child { align-items: flex-end; }
+.rk-stars span.on { color: #f2b01e; -webkit-text-stroke: 1px #a8740a; }
 .rank-tier .n { font-size: 11px; padding: 0 6px; border-radius: 999px; background: rgba(255,255,255,.7); }
 .rank-empty { height: var(--rk-row); display: flex; align-items: center; padding: 0 10px; font-size: 12px; font-style: italic; color: var(--ink-soft); }
 .rank-row {

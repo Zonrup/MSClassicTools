@@ -1709,14 +1709,18 @@
     const rows = [];
     for (const name of mobNames) {
       const items = sel.items.filter((it) => it.mobs.has(name)).map((it) => it.name);
-      if (sel.mobs.has(name) || items.length) rows.push({ name, items });
+      if (!sel.mobs.has(name) && !items.length) continue;
+      // Its ranking here: the best tier among this map and its buildings.
+      const g = groupByName.get(name);
+      const tiers = g ? here.map((x) => rankingOf(g).tierOf.get(x)).filter((t) => t != null) : [];
+      rows.push({ name, items, stars: tiers.length ? 3 - Math.min(...tiers) : 0 });
     }
     const npcs = here.flatMap((x) => (window.MINIMAP_INFO?.[x.mapId]?.npcs || []).map(([, , name]) => name))
       .filter((name, i, a) => sel.npcs.has(name) && a.indexOf(name) === i);
     if (!rows.length && !npcs.length) return "";
     let h = `<div class="tt-hits">`;
     for (const r of rows) {
-      h += `<div class="tt-hit">${esc(r.name)}</div>`;
+      h += `<div class="tt-hit"><span>${esc(r.name)}</span>${r.stars ? starsHtml(r.stars) : ""}</div>`;
       if (r.items.length) h += `<ul>${r.items.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`;
     }
     for (const name of npcs) h += `<div class="tt-hit">${esc(npcLabel(name))} <span class="tt-kind">NPC</span></div>`;
@@ -2084,7 +2088,7 @@
   // Rankings to show: a monster or item search only rings maps ranked at this tier or better.
   const RANK_SHOW = ["best", "okay", "meh"], rankShowInput = document.getElementById("rankShowRange");
   const syncRankTicks = () => {
-    document.querySelectorAll("#rankTicks span").forEach((s, i) => s.classList.toggle("on", RANK_SHOW[i] === state.rankShow));
+    document.querySelectorAll("#rankTicks > span").forEach((s, i) => s.classList.toggle("on", RANK_SHOW[i] === state.rankShow));
   };
   rankShowInput.value = RANK_SHOW.indexOf(state.rankShow);
   syncRankTicks();
@@ -2092,7 +2096,9 @@
     state.rankShow = RANK_SHOW[+rankShowInput.value] || "okay";
     syncRankTicks(); savePrefs(); updateHighlight();
   });
-  document.querySelectorAll("#rankTicks span").forEach((s, i) => s.addEventListener("click", () => {
+  // Each tick gets its tier's stars above the word.
+  document.querySelectorAll("#rankTicks > span").forEach((s, i) => s.insertAdjacentHTML("afterbegin", starsHtml(3 - i)));
+  document.querySelectorAll("#rankTicks > span").forEach((s, i) => s.addEventListener("click", () => {
     rankShowInput.value = i;
     rankShowInput.dispatchEvent(new Event("input"));
   }));
@@ -2218,6 +2224,11 @@
     out.tierOf = new Map(RANK_TIERS.flatMap((t, i) => out[t].map((m) => [m, i])));
     return out;
   }
+  // n of 3 stars, filled from the left (best 3, okay 2, meh 1).
+  function starsHtml(n) { // a function so the HUD slider can use it before this point
+    return `<span class="rk-stars" aria-label="${n} of 3 stars">${[0, 1, 2].map((i) => `<span class="${i < n ? "on" : ""}">★</span>`).join("")}</span>`;
+  }
+  const tierStars = (t) => 3 - RANK_TIERS.indexOf(t);
   const rankIds = (r) => Object.fromEntries(RANK_TIERS.map((t) => [t, r[t].map((m) => m.id)]));
   const rankCache = new Map();
   function rankingOf(g) {
@@ -2685,7 +2696,7 @@
     const items = [...pickedItems].map((n) => itemByName.get(n)).filter((it) => it && it.mobs.includes(g.name));
     let list = "";
     for (const t of RANK_TIERS) {
-      list += `<li class="rank-tier" data-tier="${t}">${RANK_LABEL[t]}<span class="n">${r[t].length}</span></li>`;
+      list += `<li class="rank-tier" data-tier="${t}">${starsHtml(tierStars(t))}${RANK_LABEL[t]}<span class="n">${r[t].length}</span></li>`;
       if (!r[t].length) list += `<li class="rank-empty">No maps. Drag one here</li>`;
       for (const m of r[t]) {
         const sh = spawnShare(g, m), host = hostOf.get(m);
