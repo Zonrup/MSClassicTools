@@ -74,6 +74,10 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - "← Back" (or Esc) returns to the picker.
 - "Download all rankings" (bottom left of the picker) saves every ranking, edits included, as `rankings.js`; with no edits it matches the packaged file exactly.
 
+### Effective monster levels
+- A monster can be marked as fighting like a higher level than its listed one, for difficulty colors and farming advice. Iron Hog (Lv 28, very high HP and defense) counts as Lv 40: at level 31 it shows red "Too hard", and so do Pig Park, Pig Park II and Someone Else's House, which are mostly Iron Hogs.
+- Its listed level is still what the page shows ("Lv 28"); hovering its level in the side panel says "Fights like Lv 40".
+
 ### Help
 - A **Help** button under Edit layout opens a near-full-screen guide, organised by task: find an NPC ("anne"), a monster ("slime"), an item drop ("leather"), a crafting station, pick several things at once, compare and rank farming spots, find maps for your level, get around, and keyboard shortcuts.
 - ×, Esc or a click outside closes it; typing while it's open doesn't start a map search.

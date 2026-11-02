@@ -55,7 +55,7 @@ It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js`
 
 ## Level colors
 
-Each monster's color comes from its level minus your level (`diffFor` in `js/map.js`). The cut-offs change with your level (`diffBands`):
+Each monster's color comes from its effective level minus your level (`diffFor` and `effLv` in `js/map.js`). A monster's `effectiveLevel` is its listed `level` unless `EFFECTIVE_LEVELS` in `tools/build_data.py` says it fights like a higher level: Iron Hog is Lv 28 but has 572 HP and 500 defense, so it counts as Lv 40. Map colors use effective levels too; the page still shows the listed level (with "Fights like Lv 40" on hover in the side panel). To add one, put its meowDB id in `EFFECTIVE_LEVELS` and re-run the build. The cut-offs change with your level (`diffBands`):
 
 | Color | Level under 10 | 10–19 | 20 and up |
 |---|---|---|---|
@@ -153,7 +153,7 @@ The pack format is documented at the top of `build_data.py`.
 window.WORLD_DATA = {
   meta: { name, status: "meowdb", source, crawledAt, scale: 6 },
   regions: { henesys: { name: "Henesys" }, ... },      // from world-map town/area dots
-  mobs: { m2: { name, level, hp, exp, def, mdef, acc, avoid, meowdbId, boss? }, ... },
+  mobs: { m2: { name, level, effectiveLevel, hp, exp, def, mdef, acc, avoid, meowdbId, boss? }, ... },  // effectiveLevel: see Level colors
   maps: [{
     id: "henesys",            // slug of the name; unique; used in links and #map=
     name, mapId: "010001000", // meowDB/game map ID, a STRING with leading zeros

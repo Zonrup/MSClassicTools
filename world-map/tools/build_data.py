@@ -60,6 +60,12 @@ EXTRA_MOBS = {
 #   (node_type would call it "hidden" and draw it as its own node).
 TYPE_OVERRIDES = {"010003112": "hidden", "010002005": "building"}
 
+# Monsters that fight like a higher level than their listed one. Each monster gets
+# "effectiveLevel" (its "level" unless listed here); the page uses it for difficulty colors
+# and farming advice, and still shows "level" as the monster's level.
+# - Iron Hog (Lv 28): HP 572 and 500 physical defense, far above other monsters its level.
+EFFECTIVE_LEVELS = {"24": 40}  # meowDB monster id -> effective level
+
 
 def load_js_object(path, var):
     txt = path.read_text(encoding="utf-8")
@@ -123,6 +129,7 @@ def main():
         entry = {
             "name": m.get("name") or f"Monster {mid}",
             "level": p.get("Level", 0),
+            "effectiveLevel": EFFECTIVE_LEVELS.get(str(mid), p.get("Level", 0)),
             "hp": p.get("HP"),
             "exp": p.get("EXP"),
             "def": p.get("Physical Defense"),
