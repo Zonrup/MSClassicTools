@@ -4,6 +4,10 @@
     python tools/scrape_minimaps.py --build    # only rebuild data/minimap_info.js from saved files
     python tools/scrape_minimaps.py --limit 3  # stop after 3 new maps (for testing)
 
+Every run ends by rewriting data/minimap_info.js from the saved files, so when that file
+already exists the script refuses to run unless given --force_overwrite_existing_data
+(it would drop hand-made entries, and every map without a raw file on this machine).
+
 Every request to meowDB (page or image) is at least DELAY seconds after the last one.
 Starts from the maps in data/raw/meowdb-pack.json and follows connected maps that stay on
 Victoria Island, so new maps are picked up too.
@@ -209,11 +213,36 @@ def build():
     log(f"wrote {OUT_JS.relative_to(ROOT)} with {len(out)} maps")
 
 
+OVERWRITE_WARNING = """\
+WARNING: this rewrites {out} from scratch, using only the saved files in {raw}/.
+
+That would lose:
+  - the hand-made entries for maps the crawl misses (Cabin of the Forsaken 010003112 and
+    The Circulation Desk 010002005, see "Hand-added maps" in README.md), and
+  - every map whose raw file isn't on this machine ({have} raw files here, {now} maps in
+    the current file). data/raw/ isn't in the repo, so on a fresh checkout this wipes
+    almost every minimap.
+
+Nothing was changed. If you mean it, run again with --force_overwrite_existing_data,
+then re-add the hand-made entries (or restore them with git)."""
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--build", action="store_true", help="only rebuild minimap_info.js")
     ap.add_argument("--limit", type=int, help="stop after this many new maps")
+    ap.add_argument("--force_overwrite_existing_data", action="store_true",
+                    help="allow replacing an existing minimap_info.js (see the warning without it)")
     a = ap.parse_args()
+    # Every run ends by rewriting minimap_info.js, so refuse up front (before a long crawl)
+    # unless the overwrite is asked for.
+    if OUT_JS.exists() and not a.force_overwrite_existing_data:
+        txt = OUT_JS.read_text(encoding="utf-8")
+        now = len(json.loads(txt[txt.index("{", txt.index("window.MINIMAP_INFO")):txt.rindex("}") + 1]))
+        have = len(list(RAW.glob("*.json"))) if RAW.exists() else 0
+        print(OVERWRITE_WARNING.format(out=OUT_JS.relative_to(ROOT), raw=RAW.relative_to(ROOT), have=have, now=now),
+              file=sys.stderr)
+        sys.exit(2)
     if not a.build:
         try:
             crawl(a.limit)

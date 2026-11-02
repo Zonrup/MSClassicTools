@@ -53,9 +53,12 @@ EXTRA_MOBS = {
         "Level": 48, "HP": 47000, "EXP": 488, "Physical Defense": 30, "Magic Defense": 10,
         "Accuracy": 138, "Avoidability": 35}},
 }
-# Map types that node_type gets wrong. The Cabin is a hidden street whose only monster is a
-# boss (node_type would call it "boss"; it gets the skull badge either way).
-TYPE_OVERRIDES = {"010003112": "hidden"}
+# Map types that node_type gets wrong:
+# - the Cabin is a hidden street whose only monster is a boss (node_type would call it
+#   "boss"; it gets the skull badge either way);
+# - the Circulation Desk is on a "Hidden Street" but is a building inside the Magic Library
+#   (node_type would call it "hidden" and draw it as its own node).
+TYPE_OVERRIDES = {"010003112": "hidden", "010002005": "building"}
 
 
 def load_js_object(path, var):

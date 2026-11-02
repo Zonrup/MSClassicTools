@@ -83,7 +83,7 @@ A map's node takes the level that a third of its spawns are at or above (`HARD_S
 | `data/drops.js`, `data/items/` | `window.WORLD_DROPS`: common ETC drops per monster, and the item icons. | No, re-run the scrape |
 | `tools/build_data.py` | Turns the pack into `victoria.js`. Needs `numpy`. | Yes |
 | `tools/save_positions.py` | Writes positions dumped from the running page into `victoria.js`. | Yes |
-| `tools/scrape_minimaps.py` | Fetches each map's minimap image, portals and NPCs from meowDB and writes `data/minimap_info.js`. | Yes |
+| `tools/scrape_minimaps.py` | Fetches each map's minimap image, portals and NPCs from meowDB and writes `data/minimap_info.js`. Refuses to replace an existing `minimap_info.js` without `--force_overwrite_existing_data`. | Yes |
 | `data/minimap_info.js`, `data/minimaps/` | `window.MINIMAP_INFO`: minimap image, portal pins and NPCs per map id, and the images. Loads deferred. | No, re-run the scrape |
 | `tools/serve.py` | Local dev server with `Cache-Control: no-cache` (see Run it). | Yes |
 
@@ -103,8 +103,9 @@ The crawl missed two maps, which only showed up as unnamed "Leads off this map" 
 Where they live, so a rebuild keeps them:
 
 - `EXTRA_MAPS`, `EXTRA_MOBS` and `TYPE_OVERRIDES` at the top of `tools/build_data.py` add them to the crawl before the build runs.
-- `data/victoria.js` has them already (edited to match what the build would write).
-- `data/minimap_info.js` has hand-made entries for both (no minimap image on meowDB; NPC and portal positions unknown, so `null`). `tools/scrape_minimaps.py --build` rebuilds that file from `data/raw/minimaps/`, so re-add these two entries if you rebuild it.
+- `data/victoria.js` is written by that build, so it has them too.
+- `data/minimap_info.js` has hand-made entries for both (no minimap image on meowDB; NPC and portal positions unknown, so `null`). `tools/scrape_minimaps.py` rebuilds that file from `data/raw/minimaps/` at the end of every run, so it refuses to run while the file exists unless you pass `--force_overwrite_existing_data`; after a forced run, re-add these two entries (or restore them with git).
+- `data/raw/` (the crawl pack, raw minimap and drop files) is not in the repo; it only exists on the machine that crawled. On a fresh checkout, neither build can run, and a forced minimap rebuild would wipe almost every minimap.
 
 ### Monster drops
 
@@ -296,6 +297,7 @@ Feature requests, in the order we plan to tackle them. Finished ones move to [FE
 
 ## Known data quirks / ideas
 
+- As of 2026-11-01, meowDB's map pages no longer embed the `"connectedMaps":[` object that `tools/crawl_meowdb.js` and `tools/scrape_minimaps.py` look for (portals, NPC positions and minimap sizes aren't in the page at all). Both crawlers will likely fail on maps they haven't saved yet until they're updated. Monster pages (JSON-LD stats) and `/msclassic/api/drops` still work.
 - Utah's Pig Farm has a "Super Ribbon Pig" at level 200 (as listed on meowDB), so it always shows red.
 - Florina Beach has no route link to the rest of the island (you reach it by NPC). `routes` supports boat or travel edges if one is wanted.
 - "Leads off this map" in the panel lists links to maps outside Victoria Island (from `exits`).
