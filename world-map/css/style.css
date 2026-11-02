@@ -531,10 +531,14 @@ body.panel-open #panel { transform: none; }
   color: var(--ink);
   font-size: 12px;
 }
-#tooltip { max-width: 300px; }
-#tooltip .tt-hit { font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#tooltip { max-width: 340px; }
+#tooltip .tt-hit { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+#tooltip .tt-hit .tt-name { flex: 1; min-width: 0; }
+/* A small monster sprite, about the text's height, so it doesn't dominate the tooltip. */
+#tooltip .tt-mob { flex: none; width: 20px; height: 18px; object-fit: contain; }
+#tooltip .tt-hit .rk-stars { margin-left: 8px; }
 #tooltip .tt-hit .rk-stars { flex: none; font-size: 12px; }
-#tooltip .tt-hits ul { margin: 0 0 2px; padding-left: 16px; }
+#tooltip .tt-hits ul { margin: 0 0 2px; padding-left: 42px; } /* bullets line up under the name, past the sprite */
 #tooltip .tt-kind { font-size: 10px; font-weight: 700; color: #1d7d72; }
 
 /* Common drops, shown on hovering a monster card (picker) or monster row (panel). */

@@ -1713,14 +1713,15 @@
       // Its ranking here: the best tier among this map and its buildings.
       const g = groupByName.get(name);
       const tiers = g ? here.map((x) => rankingOf(g).tierOf.get(x)).filter((t) => t != null) : [];
-      rows.push({ name, items, stars: tiers.length ? 3 - Math.min(...tiers) : 0 });
+      rows.push({ name, items, img: g?.img || null, stars: tiers.length ? 3 - Math.min(...tiers) : 0 });
     }
     const npcs = here.flatMap((x) => (window.MINIMAP_INFO?.[x.mapId]?.npcs || []).map(([, , name]) => name))
       .filter((name, i, a) => sel.npcs.has(name) && a.indexOf(name) === i);
     if (!rows.length && !npcs.length) return "";
     let h = `<div class="tt-hits">`;
     for (const r of rows) {
-      h += `<div class="tt-hit"><span>${esc(r.name)}</span>${r.stars ? starsHtml(r.stars) : ""}</div>`;
+      const icon = r.img ? `<img class="tt-mob" src="${esc(r.img)}" alt="">` : `<span class="tt-mob"></span>`;
+      h += `<div class="tt-hit">${icon}<span class="tt-name">${esc(r.name)}</span>${r.stars ? starsHtml(r.stars) : ""}</div>`;
       if (r.items.length) h += `<ul>${r.items.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`;
     }
     for (const name of npcs) h += `<div class="tt-hit">${esc(npcLabel(name))} <span class="tt-kind">NPC</span></div>`;
