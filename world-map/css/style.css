@@ -245,6 +245,28 @@ html, body {
   position: relative;
 }
 .mob-card:hover { border-color: var(--ink); }
+/* NPC and item cards: a small icon instead of a sprite, so more fit. */
+.mob-grid.tab-npcs, .mob-grid.tab-items { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.mob-card .sprite.small { height: 32px; align-items: center; }
+.mob-card .sprite.small img { max-height: 32px; }
+.mob-card .sprite.small .npc-chip { width: 16px; height: 16px; }
+.mob-card.npc-card .mob-name, .mob-card.item-card .mob-name { color: var(--ink); text-shadow: none; } /* the outline is for difficulty colours */
+.npc-card .mob-lv, .item-card .mob-lv { text-align: center; }
+
+/* Monsters / NPCs / Items tabs. A tab with nothing matching the filter is greyed out. */
+.picker-tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--edge); }
+.picker-tabs button {
+  font: inherit; font-weight: 600; font-size: 14px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; margin-bottom: -2px;
+  border: 2px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0;
+  background: transparent; color: var(--ink-soft); cursor: pointer;
+}
+.picker-tabs button:hover { color: var(--ink); }
+.picker-tabs button.on { background: #fffaf0; border-color: var(--edge); color: var(--ink); }
+.picker-tabs button.empty { opacity: .45; }
+.picker-tabs .n { font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 999px; background: var(--parchment-2); }
+.picker-tabs .picks { font-size: 11px; font-weight: 700; color: #1d7d72; }
 .mob-card.sel { border-color: #2aa89a; background: #e3f9f5; box-shadow: 0 0 0 2px #7fe3d6; }
 .mob-card.sel::after {
   content: "✓"; position: absolute; top: 4px; right: 6px;

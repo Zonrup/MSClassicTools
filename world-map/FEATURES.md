@@ -54,6 +54,14 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - **Magic Library** shows as a safe zone next to Ellinia, with **The Circulation Desk** as its building. Opening the desk shows "← Back to Magic Library" and its NPCs: Lyn the Librarian, Sabrina the Scribe and Jon the Justicar.
 - Searching any of those three NPCs rings the Magic Library.
 
+### Picker tabs: monsters, NPCs and items
+- The picker has three tabs below the Selected chips, in this order: **Monsters**, **NPCs** and **Items**, each with its count of matching entries.
+- NPC cards show where the NPC is (or a station's craft); item cards show the item's icon and which monsters drop it.
+- Picks from every tab show as Selected chips (each × removes it), in the Picked row under the search bar, and as a ✓ count on their tab.
+- Picked NPCs ring their maps; picked items ring every map of the monsters that drop them. Several items can be picked at once, e.g. Tree Branch and Leather: hovering Forest West of Henesys then shows "Stump • Tree Branch", "Pig • Leather" and "Ribbon Pig • Leather", and its side panel marks those three monsters.
+- With filter text, tabs with no match are greyed out but can still be opened; their grid says "No matching …".
+- Each edit of the filter text switches to the first tab with a match when the open tab has none: "lyn" jumps to NPCs, while "branch" stays on Monsters (Stumps drop branches).
+
 ## Pre-existing features
 
 ### The map
