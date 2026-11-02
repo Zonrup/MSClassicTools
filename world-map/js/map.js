@@ -2553,25 +2553,47 @@
 
   // Search box: live rings while typing.
   search.addEventListener("input", () => { typed = prefixMatches(search.value); updateHighlight(); });
-  // Enter leaves the box and moves the map: an exact map name opens that map; else it
-  // deselects and zooms to the ringed monster/NPC maps; else it opens the first matching map.
-  // The rings stay. (Tab then Enter opens the picker instead.)
+  // The one monster, item or NPC the typing names, as [kind, name], or null. A single
+  // monster also wins when every matching item is dropped only by it ("green mushroom":
+  // the Green Mushroom, not also its Green Mushroom Cap).
+  function uniqueTyped(t) {
+    const all = [...t.mobs.map((n) => ["mobs", n]), ...t.items.map((n) => ["items", n]), ...t.npcs.map((n) => ["npcs", n])];
+    if (all.length === 1) return all[0];
+    if (t.mobs.length === 1 && !t.npcs.length && t.items.every((n) => { const ms = itemByName.get(n)?.mobs || []; return ms.length === 1 && ms[0] === t.mobs[0]; })) return ["mobs", t.mobs[0]];
+    return null;
+  }
+
+  // Enter in the box: an exact map name opens that map. Else, when the typing names one
+  // monster, item or NPC (uniqueTyped), it's picked (the box clears and it moves to the
+  // Picked row) and the map zooms to its rings. Else, with several matches, the picker
+  // opens with the typing as its filter. With only map names matching, the first opens.
+  // (Tab then Enter opens the picker too.)
   search.addEventListener("keydown", (ev) => {
     if (ev.key !== "Enter") return;
     ev.preventDefault();
-    search.blur();
     typed = prefixMatches(search.value);
     updateHighlight();
     const exact = maps.find((x) => x.name.toLowerCase() === typed.q);
-    if (exact) { reveal(exact); select(exact); return; }
-    const hits = new Set([...(state.mobHit?.maps || []), ...(state.npcHit?.maps || [])]);
-    if (hits.size) {
-      for (const m of hits) reveal(m);
-      select(null);
-      animateTo(fitPoints([...hits].map((m) => [m.x, m.y]), 90, 1.4));
+    if (exact) { search.blur(); reveal(exact); select(exact); return; }
+    const one = uniqueTyped(typed);
+    if (one) {
+      search.blur();
+      pickSets[one[0]].add(one[1]);
+      search.value = "";
+      typed = prefixMatches("");
+      updateHighlight();
+      const hits = new Set([...(state.mobHit?.maps || []), ...(state.npcHit?.maps || [])]);
+      if (hits.size) {
+        for (const m of hits) reveal(m);
+        select(null);
+        animateTo(fitPoints([...hits].map((m) => [m.x, m.y]), 90, 1.4));
+      }
       return;
     }
+    if (typed.mobs.length || typed.items.length || typed.npcs.length) { openMobDialog(search.value.trim()); return; }
+    search.blur();
     if (typed.maps[0]) { reveal(typed.maps[0]); select(typed.maps[0]); }
+    else if (typed.q) toast("No matches");
   });
 
   // Picker icon: next in tab order after the box. Opens with the typed text as its filter;

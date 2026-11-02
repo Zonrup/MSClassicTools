@@ -77,6 +77,12 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - A **Rankings to show** slider under Labels (Best / Okay / Meh, default Okay) limits monster and item rings to maps ranked at that tier or better: Orange Mushroom rings 4 maps on Best, 12 on Okay and all 23 on Meh.
 - A map stays ringed if it passes for any selected monster on it. NPC searches aren't affected. The setting is remembered.
 
+### Enter picks a unique search match
+- Pressing Enter when the typing matches exactly one monster, item or NPC picks it: the search box clears, it shows in the Picked row and as picked in the "Find anything" dialog, and the map zooms to its maps. "tree branch" picks Tree Branch; "mushroom" picks Mushroom Spore.
+- A monster also counts as a unique match when every item the typing matches is dropped only by that monster: "green mushroom", "orange mushroom", "blue mushroom" and "horny mushroom" each pick just the monster, not its cap.
+- When the typing matches several things, Enter opens the dialog filtered by it instead: "stump" (Stump, Stumpy, Stump's Teardrop), "snail" (Snail Shell also drops from Mano), "arwen" (Arwen the Fairy and Arwen's Glass Shoe), "zombie mushroom" (both levels).
+- An exact map name still opens that map, and typing that only matches map names opens the first match.
+
 ### Same-name monster variants split
 - Monsters that share a name are separate picker cards: "Zombie Mushroom" (Lv 24, 15 maps) and "Zombie Mushroom (Lv 30)" (1 map). The side panel and tooltip use the same names.
 
@@ -129,7 +135,7 @@ What the Victoria Island world map does, written as behaviors you can check. See
 ### Search
 - Typing in the search box, or anywhere on the map, searches monsters, NPCs and maps by the start of their name (maps also ignoring a leading "The"), from 2 characters on.
 - When 3 or fewer monsters (or NPCs) match, their maps get teal rings as you type; with more, the hint says to keep typing.
-- Enter: an exact map name opens that map; otherwise the camera zooms to the ringed maps; otherwise it opens the first matching map.
+- Enter: an exact map name opens that map (see "Enter picks a unique search match" for the rest).
 - `Esc` on the map clears the typing, then the picks.
 - A monster or NPC inside a building rings the building's host map.
 
