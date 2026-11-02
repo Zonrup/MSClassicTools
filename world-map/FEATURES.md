@@ -12,7 +12,7 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - Station NPCs show their craft in the side panel's NPC list (e.g. "Smithing station").
 
 ### Monster drops on hover
-- Hovering a monster card in the "Find farming spots" picker shows a popup with its level, difficulty, map count and common drops, each with its icon and item type.
+- Hovering a monster card in the "Find anything" picker shows a popup with its level, difficulty, map count and common drops, each with its icon and item type.
 - Hovering a monster row in a map's side panel shows the same popup, to the left of the row.
 - Drops show OSMLib's reference rate where known (e.g. Stump: Tree Branch 40%).
 - Monsters with no recorded drops say "No common ETC drops recorded".
@@ -55,7 +55,7 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - Searching any of those three NPCs rings the Magic Library.
 
 ### Picker tabs: monsters, NPCs and items
-- The picker has three tabs below the Selected chips, in this order: **Monsters**, **NPCs** and **Items**, each with its count of matching entries.
+- The picker has three tabs below its filter box (which sits under the Selected chips), in this order: **Monsters**, **NPCs** and **Items**, each with its count of matching entries.
 - NPC cards show where the NPC is (or a station's craft); item cards show the item's icon and which monsters drop it.
 - Picks from every tab show as Selected chips (each × removes it), in the Picked row under the search bar, and as a ✓ count on their tab.
 - Picked NPCs ring their maps; picked items ring every map of the monsters that drop them. Several items can be picked at once, e.g. Tree Branch and Leather: hovering Forest West of Henesys then shows "Stump • Tree Branch", "Pig • Leather" and "Ribbon Pig • Leather", and its side panel marks those three monsters.
@@ -115,7 +115,7 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - `Esc` on the map clears the typing, then the picks.
 - A monster or NPC inside a building rings the building's host map.
 
-### "Find farming spots" picker
+### "Find anything" picker
 - The mushroom button next to the search box opens a dialog of monster cards sorted by level: sprite, name in its difficulty color, level(s) and map count. Same-name variants (like the two Zombie Mushroom levels) are merged.
 - Click cards to pick any number; their maps get rings live. "Show on map" closes the dialog and zooms to them; "Clear" unpicks all.
 - The filter box narrows the cards and shows map-name chips that jump to that map.
