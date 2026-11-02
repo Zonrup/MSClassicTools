@@ -74,6 +74,12 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - "← Back" (or Esc) returns to the picker.
 - "Download all rankings" (bottom left of the picker) saves every ranking, edits included, as `rankings.js`; with no edits it matches the packaged file exactly.
 
+### Ranking stars on search rings
+- Every map ringed by a monster or item search shows its ranking as a small row of 3 stars overlapping the ring's top-right (★★★ Best, ★★☆ Okay, ★☆☆ Meh), so a Best spot stands out from an Okay one. With Orange Mushroom on Okay: 4 maps with 3 stars, 8 with 2.
+- A map with several searched monsters shows its best stars among them. NPC rings and unranked Forgotten Hollow maps get no stars.
+- In "Find in map" from the rankings, the shown map has its stars too.
+- Smart labels keep off the stars.
+
 ### Rankings to show
 - A **Rankings to show** slider under Labels (Best / Okay / Meh, default Okay) limits monster and item rings to maps ranked at that tier or better: Orange Mushroom rings 4 maps on Best, 12 on Okay and all 23 on Meh.
 - A map stays ringed if it passes for any selected monster on it. NPC searches aren't affected. The setting is remembered.
