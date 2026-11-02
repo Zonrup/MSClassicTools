@@ -62,6 +62,24 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - With filter text, tabs with no match are greyed out but can still be opened; their grid says "No matching …".
 - Each edit of the filter text switches to the first tab with a match when the open tab has none: "lyn" jumps to NPCs, while "branch" stays on Monsters (Stumps drop branches).
 
+### Map rankings
+- "Show map rankings" (picker footer) opens a card per picked monster, plus every monster that drops a picked item, with its maps ranked in three tiers: **Best**, **Okay** and **Meh**. NPC picks are ignored.
+- The button is greyed out with nothing picked, and with more than 15 monsters (the most any single item drops: Fragment of Magic), saying why on hover.
+- Each card shows the monster's sprite and level, the picked items it drops (e.g. Slime with Squishy Liquid), and each map's spawn count and share of the map's monsters (e.g. Orange Mushroom: Mushroom Garden ×15 · 44%).
+- Default tiers rank maps by the monster's share of spawns: the top 15% are Best, down to 50% Okay, the rest Meh; a monster on 1 or 2 maps has them all in Best.
+- Dragging a map's ⠿ handle moves it within or between tiers, with mouse or touch; empty tiers still show so maps can be dropped in. Edits are saved in the browser, and "Reset to default" undoes them for that monster.
+- Each card's map list is 10 rows tall and scrolls (Slime has 52 maps).
+- "Find" closes the dialog and shows that map, selected and ringed, with hidden streets and Forgotten Hollow shown. The top-left panel then shows "Showing map for monster …" with "Return to ranking" (back to the same scroll position) and "Exit ranking" (picks kept), instead of the search box, toggles and Edit layout.
+- "← Back" (or Esc) returns to the picker.
+- "Download all rankings" (bottom left of the picker) saves every ranking, edits included, as `rankings.js`; with no edits it matches the packaged file exactly.
+
+### Rankings to show
+- A **Rankings to show** slider under Labels (Best / Okay / Meh, default Okay) limits monster and item rings to maps ranked at that tier or better: Orange Mushroom rings 4 maps on Best, 12 on Okay and all 23 on Meh.
+- A map stays ringed if it passes for any selected monster on it. NPC searches aren't affected. The setting is remembered.
+
+### Same-name monster variants split
+- Monsters that share a name are separate picker cards: "Zombie Mushroom" (Lv 24, 15 maps) and "Zombie Mushroom (Lv 30)" (1 map). The side panel and tooltip use the same names.
+
 ## Pre-existing features
 
 ### The map
@@ -116,7 +134,7 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - A monster or NPC inside a building rings the building's host map.
 
 ### "Find anything" picker
-- The mushroom button next to the search box opens a dialog of monster cards sorted by level: sprite, name in its difficulty color, level(s) and map count. Same-name variants (like the two Zombie Mushroom levels) are merged.
+- The mushroom button next to the search box opens a dialog of monster cards sorted by level: sprite, name in its difficulty color, level(s) and map count. Same-name variants (like the two Zombie Mushroom levels) were merged; they're now separate cards (see above).
 - Click cards to pick any number; their maps get rings live. "Show on map" closes the dialog and zooms to them; "Clear" unpicks all.
 - The filter box narrows the cards and shows map-name chips that jump to that map.
 - Opening it from the keyboard (type, Tab, Enter) starts the filter with the typed text.

@@ -30,14 +30,16 @@ It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js`
 - **Search** ("Search and monster picker" section of `js/map.js`):
   - **Typing:** type in the search box, or just start typing anywhere on the map. From 2 characters (`SEARCH_MIN_CHARS`), monsters, ETC items, NPCs and maps whose names start with the text match (maps also ignoring a leading "The"). If 3 or fewer monster names match (`SEARCH_MAX_MOBS`), every map holding them gets a teal ring as you type. The same goes for items, which ring the maps of every monster that drops them ("tree branch" rings the Stump maps), and NPCs.
   - **Crafting stations** are NPCs on the minimaps. They also match their craft's name and "crafting station" (`STATIONS` in `js/map.js`), so "smithing" finds the Anvil and "tailoring" the Sewing Machine; matches that are all stations ring together however many there are. Enter just leaves the box (the rings stay). Esc on the map clears it.
-  - **Picker** ("Find anything"): the mushroom icon at the right of the search box opens a dialog with three tabs, **Monsters**, **NPCs** and **Items** (`PICK_TABS`, `renderPicker`), each with its match count. Picks on every tab ring together: NPCs ring their maps, items ring the maps of every monster that drops them. The filter matches all tabs; a tab with no match is greyed out but still opens (showing "No matching …"), and each edit of the filter switches to the first tab with a match when the open one has none (`onFilterChange`). Monster cards are sorted by level: sprite, name coloured by difficulty at your level, level(s), map count (same-name variants merged). It's next in tab order after the box, so type → Tab → Enter opens it with the typed text as the filter (focus returns to the icon on close). Click cards to pick any number; their maps get rings, live. The picks show as "Selected" chips at the top of the dialog (`renderPickedChips`); × on a chip removes that pick. Its filter narrows the cards (substring of the monster's name or of one of its drops) and shows map-name chips that jump to the map.
+  - **Picker** ("Find anything"): the mushroom icon at the right of the search box opens a dialog with three tabs, **Monsters**, **NPCs** and **Items** (`PICK_TABS`, `renderPicker`), each with its match count. Picks on every tab ring together: NPCs ring their maps, items ring the maps of every monster that drops them. The filter matches all tabs; a tab with no match is greyed out but still opens (showing "No matching …"), and each edit of the filter switches to the first tab with a match when the open one has none (`onFilterChange`). Monster cards are sorted by level: sprite, name coloured by difficulty at your level, level(s), map count. Same-name variants are separate cards: the one on the most maps keeps the name, the others get "(Lv N)", e.g. "Zombie Mushroom (Lv 30)" (`mobName`). It's next in tab order after the box, so type → Tab → Enter opens it with the typed text as the filter (focus returns to the icon on close). Click cards to pick any number; their maps get rings, live. The picks show as "Selected" chips at the top of the dialog (`renderPickedChips`); × on a chip removes that pick. Its filter narrows the cards (substring of the monster's name or of one of its drops) and shows map-name chips that jump to the map.
   - **Drops:** hovering a card, or a monster row in the side panel, shows that monster's common drops (`showDrops`), with OSMLib's reference rate where known.
   - Rings come from what's typed and the picks together (plus the dialog filter's matches while nothing is picked). The box under the search bar has a row for each: **Typed** (what the typing matches) and **Picked**. Each row's × clears just that row; Esc on the map clears the typing first, then the picks.
   - **Side panel:** monster rows that are typed or picked, or that drop a typed item, are marked in the light teal of the world map's rings, with a "Drops <item>" line (`paintMobs`). Found NPC rows, minimap dots and building pins use the same teal (`paintNpcs`). Every search hit, monster, item or NPC, gets one teal ring on the world map.
+  - **Map rankings** ("Show map rankings" in the picker's footer, `showRankView`): a card per picked monster and per monster that drops a picked item (NPC picks are ignored), each with its maps in three tiers, **Best / Okay / Meh**, showing spawns on the map and their share. Greyed out (via `aria-disabled`, so the tooltip still shows) with no monster or item picked, or with more monsters than `RANK_CAP`, the most monsters any one item drops (15, Fragment of Magic). Drag a map's ⠿ handle to reorder it or move it to another tier (pointer events, so touch works); edits are saved in `localStorage` under `wm-rankings` and replace the default for that monster, and "Reset to default" undoes them. Each card's list is a fixed 10 rows tall and scrolls. **Find** hides the dialog and shows that one map ringed (`enterRankFocus`): hidden streets and Forgotten Hollow are forced on without touching the checkboxes, and the HUD swaps its search, toggles and Edit layout for "Return to ranking" (reopens at the same scroll) and "Exit ranking" (keeps the picks). **Download all rankings** (bottom left of the picker) saves every ranking, with your edits, as `rankings.js` to replace `data/rankings.js`.
+  - **Rankings to show** slider (Best / Okay / Meh, default Okay): a monster or item search, typed or picked, only rings maps ranked at that tier or better for one of its monsters (`rankPasses`). NPC searches aren't affected.
   - **Map tooltip:** while anything is typed or picked, hovering a map adds a light blue section listing which of those monsters, items and NPCs are on it (or in its buildings). Each item sits under the monster there that drops it, e.g. "Stump" with "• Tree Branch" (`selectedHereHtml`, from `state.sel`).
 - Click a node to open its details on the right. `Esc` closes the panel. The URL keeps the selected map (`#map=<id>`), so links can be shared.
 - Set your level (top left) to recolor every node and monster.
-- Toggles: **Hidden streets**, **Forgotten Hollow**, plus the **Labels** slider (None / Smart / All). They're saved in `localStorage` under `wm-prefs`.
+- Toggles: **Hidden streets**, **Forgotten Hollow**, plus the **Labels** slider (None / Smart / All) and the **Rankings to show** slider. They're saved in `localStorage` under `wm-prefs`.
 - Labels (`drawLabels` in `js/map.js`):
   - **None:** only the hovered/selected map and search hits. **All:** every map, overlaps allowed.
   - **Smart:** shows labels in zoom steps by camera scale (`SMART_ZOOM`; scale decides the room between nodes on any window size, and fitting the whole map is about 0.18 on a laptop and 0.3–0.4 on a 2560-wide screen): below 0.2 town banners only; from 0.2 area names along numbered side paths; from 0.6 names of maps on main roads; from 0.9 every map. Each smart label keeps `LABEL_PAD` (8 px) clear around it. Labels never overlap another label, a node, a section banner/marker or a HUD card, and each tries below, above, right, then left of its node (`labelPriority` sets the order).
@@ -81,6 +83,8 @@ A map's node takes the level that a third of its spawns are at or above (`HARD_S
 | `data/mobs/`, `data/mob_images.js` | Monster sprites (PNG or animated GIF) and the monster key → file index. | No, re-run the fetch |
 | `tools/scrape_drops.py` | Fetches every monster's drops from meowDB and writes `data/drops.js` (see Monster drops). | Yes |
 | `data/drops.js`, `data/items/` | `window.WORLD_DROPS`: common ETC drops per monster, and the item icons. | No, re-run the scrape |
+| `tools/build_rankings.py` | Builds the default map rankings from `victoria.js` (see Map rankings). | Yes |
+| `data/rankings.js` | `window.MAP_RANKINGS`: per monster, its map ids in tiers `best`, `okay`, `meh`, best first. | Yes, or replace it with the page's "Download all rankings" |
 | `tools/build_data.py` | Turns the pack into `victoria.js`. Needs `numpy`. | Yes |
 | `tools/save_positions.py` | Writes positions dumped from the running page into `victoria.js`. | Yes |
 | `tools/scrape_minimaps.py` | Fetches each map's minimap image, portals and NPCs from meowDB and writes `data/minimap_info.js`. Refuses to replace an existing `minimap_info.js` without `--force_overwrite_existing_data`. | Yes |
@@ -114,6 +118,13 @@ Where they live, so a rebuild keeps them:
 - meowDB's robots.txt asks tools to email contact@meowdb.com for permission first, and approved tools to send one request every 10 seconds with the tool's name and a contact in the User-Agent, and to stop on a 403 or 429. The script keeps to the pace, user agent and stop rules.
 - It takes about 40 minutes and can be stopped and restarted; saved files are skipped. Raw responses go to `data/raw/drops/`. `python3 tools/scrape_drops.py --build` rebuilds `data/drops.js` without fetching anything.
 - `drops.js` format: `items: { <meowDB item id>: { name, sub, icon } }`, `mobs: { <monster key>: [[itemId, score, osmlibPercent or null], ...] }`, best score first.
+
+### Map rankings
+
+`tools/build_rankings.py` writes the default `data/rankings.js` from `victoria.js`. For each monster (by its page name, so same-name variants are ranked separately) its maps are ranked by the monster's share of the map's spawns (its spawn count ÷ all monster spawns there; 20 Snails out of 67 = 30%), ties broken by raw count, then map name. A monster on 1 or 2 maps has them all in **best**; otherwise the top 15% (rounded up) are **best**, the rest of the top 50% (rounded up) are **okay**, and the bottom half are **meh** (34 maps → 6, 11, 17).
+
+- Re-running the script replaces hand edits in `rankings.js`. To keep edits made in the page, use its "Download all rankings" instead.
+- The page puts maps that a ranking doesn't list (new data) at the end of **meh**, and drops ids that are no longer that monster's maps.
 
 ### Refreshing the data
 
@@ -291,52 +302,11 @@ See [FEATURES.md](FEATURES.md) for the full list of features.
 
 Feature requests, in the order we plan to tackle them. Finished ones move to [FEATURES.md](FEATURES.md).
 
-1. **Ranking map hits for farming spots (for both items and monsters, but simply rank by monster)**. Currently we highlight every map that has any instance of a monster when we search for monsters or items. Like, "Orange mushroom" will highlight 23 maps. And, "Pig's head" will highlight 16 maps. However, there are some maps that are a lot better than others for farming orange mushrooms / pig heads, and I think we could group most cases into 3 tiers (best, okay, meh). For implementation, there aren't that many monsters in the game so we can simply have a mapping of monster to groups of maps by tier.
-
-OK. Let's add map tier list. In fact, for this one, we should add a feature to allow people to edit tiers locally but provide a default that we package with the site.
-Similar to the location edit feature.
-
-**Button on search dialog**
-
-Could you create a button at the bottom of the search dialog that reads "Show map rankings"? It can go to the left of the Clear button.
-The button should be greyed out and not interactible with nothing selected, but when at least one monster or item is selected, it should be available to be clicked.
-If more than the cap of monsters are selected, just make it greyed out again, with mouseover text "too many monsters selected, max N". The cap N is the largest number of monsters that drop any single item, computed from the data (currently 15, Fragment of Magic), so picking any one item on its own always works. For the purposes of the cap, an item that is dropped by multiple monsters (like leather) should "include" both of those monsters in the count, as we will need to render them in the subdialog.
-
-**Subdialog within search dialog**
-
-Clicking on it should transition the dialog into a "subdialog" (in the information hierarchy its like "to the right" / "deeper" than the top-level search dialog), with a back button at the top to return to the search multi-select, outside of the "scrollable space" of the subdialog.
-
-The rest of the subdialog, within a scrollable, will render full-width cards, one per monster in the selection that got us to this subdialog. In the subdialog, every selected Monster from the search bar is now shown in the subdialog, with a full width card per monster from the previous page's selection.
-
-Any selected items should result in the monster that drops it showing up in the subdialog, but with the item included in the card as well. If multiple items that are dropped by the same monster were selected, include them all in the cards. If an item is dropped by multiple monsters, all of those monsters should be included.
-
-On each card, the monster should be shown the left side of each card (we can re-use the search multiselect icons for this), and any items selected for that monster should be shown to the right side of the monster.
-
-Then, on the right side of the card, the list of all maps that contain the monster in a vertical ranked list order, grouped by the ranking tiers: "best", "okay", "meh". Ranking tier buckets that are empty should still be rendered for editing purposes. Each list should have a few buttons on the right: one rightmost button to "click to drag" which allows reordering it relative to the other maps (including moving it into other tier buckets). The main button (to the left of "click to drag") is the "find in map" button. The "find in map" has weird behavior - it will "temporarily" close the modal dialog, and select the map in particular, as well as search-highlighting it. However, this should result in a "modified state" of the main UI where, in the top-left panel, the search bar is gone, and hidden streets and forgotten hollow are all force-shown, and the "edit layout" button is not present. Instead, it should render small text in the same manner as the "picked" thing, that says "Showing map for monster xyz". Underneath that text, it should have two buttons spaced vertically: a larger "Return to ranking" above a smaller button "exit ranking".
-
-**Search behavior after the new tierlist**.
-
-We should also add a new slider, under "labels", called "rankings to show". It should have the 3 tiers "best", "okay" and "meh" as options. Now, when deciding to highlight maps for monster and item search, we should *only* highlight the maps that are greater than or equal to the selected tier.
-
-**Decisions (agreed)**
-
-- Tier names are **best / okay / meh** everywhere (cards, slider, saved data).
-- **Default rankings** (packaged with the site, e.g. `data/rankings.js`, generated by a script from `victoria.js`): for each monster, rank its maps by its share of the map's spawns (that monster's spawn count ÷ all monster spawns on the map; e.g. 20 Snails out of 67 spawns = 30%). Ties break by raw spawn count, then map name.
-  - A monster on only 1 or 2 maps: all of them are **best**.
-  - Otherwise the top 15% of its maps are **best**, the rest of the top 50% are **okay**, and the bottom half are **meh** (rounding up, so best always has at least one map). For example, 34 maps → 6 best, 11 okay, 17 meh.
-- **Saving edits**: edits are saved in the browser (localStorage) and override the packaged default per monster. Each card has a "Reset to default" for that monster. A **Download all rankings** button sits at the bottom-left of the search dialog (the file replaces the packaged default, like Download victoria.js does for the layout).
-- **What opens the rankings**: only picks from the dialog (monsters and items). Typed search text doesn't count, and NPC picks are ignored (they can't be killed).
-- **"Find in map" mode**: forcing Hidden streets and Forgotten Hollow on is temporary; the user's own settings come back on exit and aren't saved over. "Return to ranking" reopens the subdialog at the same scroll position. "Exit ranking" closes the ranking view and keeps the picks.
-- **Rankings slider** defaults to **okay** (most searches are cluttered today). A map stays highlighted if it passes the slider for *any* selected monster on it. Maps that new data adds (not yet in a saved or default ranking) land in **meh**.
-- **Greyed-out button**: shown as disabled with a class/`aria-disabled` rather than the `disabled` attribute, since disabled buttons don't show a mouseover tooltip in most browsers.
-- **Drag to reorder** uses pointer events (mouse and touch), not the browser's built-in drag-and-drop, which doesn't work on phones.
-- **Same-name variants are ranked separately**, and the picker splits them too: today only Zombie Mushroom (Lv 24, `m21`, Ant Tunnels etc.) and a Lv 30 one (`m800011`, only Precipice of Darkness in Forgotten Hollow). The picker shows them as "Zombie Mushroom" and "Zombie Mushroom (Lv 30)"; the variant on the most maps keeps the plain name, the others get "(Lv N)". Each gets its own card, ranking and drops. Forgotten Hollow isn't released yet, so this data may be wrong. If the Lv 30 one turns out to be an instance-only monster (like the Lv 21 Ligators in the Kerning party quest), it should be left out of the picker altogether.
-- **Card height**: each card's map list is a fixed height of 10 map rows and scrolls inside the card (Slime has 52 maps). Adjust if it looks awkward.
-
-2. **Full screen map info dialog** view. Some of the minimaps are weird (tall/wide) and make the right hand pane a bit difficult to use. We should add a button in the right hand info panel above "minimap" that allows us to view a fullscreen dialog of all the info for the map. The dialog can contain the minimap as well as the same organized information in a similar way as the right hand panel.
+1. **Full screen map info dialog** view. Some of the minimaps are weird (tall/wide) and make the right hand pane a bit difficult to use. We should add a button in the right hand info panel above "minimap" that allows us to view a fullscreen dialog of all the info for the map. The dialog can contain the minimap as well as the same organized information in a similar way as the right hand panel.
 
 ## Known data quirks / ideas
 
+- "Zombie Mushroom (Lv 30)" (`m800011`) is only on Precipice of Darkness in Forgotten Hollow, which isn't released yet, so it may be wrong. If it turns out to be an instance-only monster (like the Lv 21 Ligators in the Kerning party quest), it should be left out of the picker.
 - As of 2026-11-01, meowDB's map pages no longer embed the `"connectedMaps":[` object that `tools/crawl_meowdb.js` and `tools/scrape_minimaps.py` look for (portals, NPC positions and minimap sizes aren't in the page at all). Both crawlers will likely fail on maps they haven't saved yet until they're updated. Monster pages (JSON-LD stats) and `/msclassic/api/drops` still work.
 - Utah's Pig Farm has a "Super Ribbon Pig" at level 200 (as listed on meowDB), so it always shows red.
 - Florina Beach has no route link to the rest of the island (you reach it by NPC). `routes` supports boat or travel edges if one is wanted.
