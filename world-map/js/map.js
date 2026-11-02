@@ -1854,7 +1854,9 @@
         const name = mob.meowdbId
           ? `<a href="https://meowdb.com/msclassic/monsters/${mob.meowdbId}" target="_blank" rel="noopener">${esc(mob.name)}</a>`
           : esc(mob.name);
+        const img = MOB_IMAGES[mob.id];
         h += `<li data-mob-name="${esc(mob.name)}"><span class="chip" style="background:${DIFF[md].color}"></span>
+          <span class="mob-sprite">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : ""}</span>
           <span class="mob-name">${name}${mob.boss ? '<span class="boss-tag">BOSS</span>' : ""}${stats ? `<br><span class="stats">${stats}</span>` : ""}<span class="sel-drops" hidden></span></span>
           <span class="lv">Lv ${mob.level}</span><span class="why">${DIFF[md].label}</span></li>`;
       }

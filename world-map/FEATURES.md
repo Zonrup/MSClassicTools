@@ -74,6 +74,13 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - "← Back" (or Esc) returns to the picker.
 - "Download all rankings" (bottom left of the picker) saves every ranking, edits included, as `rankings.js`; with no edits it matches the packaged file exactly.
 
+### Help
+- A **Help** button under Edit layout opens a near-full-screen guide, organised by task: find an NPC ("anne"), a monster ("slime"), an item drop ("leather"), a crafting station, pick several things at once, compare and rank farming spots, find maps for your level, get around, and keyboard shortcuts.
+- ×, Esc or a click outside closes it; typing while it's open doesn't start a map search.
+
+### Monster sprites in the side panel
+- Each monster row in a map's details shows the monster's sprite between its difficulty dot and its name, in a fixed-size box so names line up.
+
 ### Ranking stars on search rings
 - Every map ringed by a monster or item search shows its ranking as a small row of 3 stars overlapping the ring's top-right (★★★ Best, ★★☆ Okay, ★☆☆ Meh), so a Best spot stands out from an Okay one. With Orange Mushroom on Okay: 4 maps with 3 stars, 8 with 2.
 - A map with several searched monsters shows its best stars among them. NPC rings and unranked Forgotten Hollow maps get no stars.
