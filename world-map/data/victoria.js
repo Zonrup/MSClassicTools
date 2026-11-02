@@ -856,6 +856,18 @@ window.WORLD_DATA = {
    "acc": 999,
    "avoid": 999,
    "meowdbId": 92
+  },
+  "m700006": {
+   "name": "Shade",
+   "level": 48,
+   "hp": 47000,
+   "exp": 488,
+   "def": 30,
+   "mdef": 10,
+   "acc": 138,
+   "avoid": 35,
+   "meowdbId": 700006,
+   "boss": true
   }
  },
  "maps": [
@@ -2261,20 +2273,29 @@ window.WORLD_DATA = {
    "name": "Magic Library",
    "mapId": "010002003",
    "region": "ellinia",
-   "type": "building",
+   "type": "safe",
    "street": "Victoria Road",
    "x": 2605,
    "y": 1525,
    "mobs": [],
-   "links": [],
+   "links": [
+    "the_circulation_desk"
+   ],
    "verified": true,
-   "exits": [
-    {
-     "mapId": "010002005",
-     "name": "010002005",
-     "region": "?"
-    }
-   ]
+   "pinned": true
+  },
+  {
+   "id": "the_circulation_desk",
+   "name": "The Circulation Desk",
+   "mapId": "010002005",
+   "region": "ellinia",
+   "type": "building",
+   "street": "Hidden Street",
+   "x": 2585,
+   "y": 1485,
+   "mobs": [],
+   "links": [],
+   "verified": true
   },
   {
    "id": "marr_s_forest",
@@ -4218,16 +4239,30 @@ window.WORLD_DATA = {
      "count": 14
     }
    ],
+   "links": [
+    "cabin_of_the_forsaken"
+   ],
+   "verified": true,
+   "pinned": true
+  },
+  {
+   "id": "cabin_of_the_forsaken",
+   "name": "Cabin of the Forsaken",
+   "mapId": "010003112",
+   "region": "kerning_city",
+   "type": "hidden",
+   "street": "Hidden Street",
+   "x": 588,
+   "y": 676,
+   "mobs": [
+    {
+     "id": "m700006",
+     "count": 1
+    }
+   ],
    "links": [],
    "verified": true,
-   "pinned": true,
-   "exits": [
-    {
-     "mapId": "010003112",
-     "name": "010003112",
-     "region": "?"
-    }
-   ]
+   "pinned": true
   },
   {
    "id": "perion",

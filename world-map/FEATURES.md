@@ -48,10 +48,16 @@ What the Victoria Island world map does, written as behaviors you can check. See
 - The band is one rounded blob covering the area between the town's maps, even where they don't link to each other.
 - Links, nodes and labels draw on top of the band.
 
+### Missing maps added
+- **Cabin of the Forsaken** shows as a hidden street off The Murky Swamp II, with a skull badge for its boss, Shade (Lv 48). Its panel lists Shade, and "shade" in the search box rings it.
+- The Murky Swamp II's panel links to the Cabin by name, where it used to show an unnamed "Leads off this map" entry.
+- **Magic Library** shows as a safe zone next to Ellinia, with **The Circulation Desk** as its building. Opening the desk shows "← Back to Magic Library" and its NPCs: Lyn the Librarian, Sabrina the Scribe and Jon the Justicar.
+- Searching any of those three NPCs rings the Magic Library.
+
 ## Pre-existing features
 
 ### The map
-- Every Victoria Island map (246 from meowDB) is a node on a hand-drawn island, in the style of the in-game world map, with biomes, trees, rocks, clouds and curved paths.
+- Every Victoria Island map (248, from meowDB) is a node on a hand-drawn island, in the style of the in-game world map, with biomes, trees, rocks, clouds and curved paths.
 - Node shapes show the map type: towns (blue, with a name banner), fields, hidden streets, dungeons and underground maps (on a dark cave backdrop). Boss maps get a skull badge. Buildings (shops, halls, saunas) aren't drawn.
 - Sleepywood Dungeon and Forgotten Hollow are drawn as separate dark panels below the island, laid out as trees.
   - Sleepywood Dungeon has a dashed "staircase" line up to Sleepywood.

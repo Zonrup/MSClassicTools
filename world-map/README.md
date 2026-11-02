@@ -91,7 +91,20 @@ Fonts are Fredoka (UI), Atkinson Hyperlegible (map labels) and Alegreya SC (titl
 
 ## Data
 
-All map and monster data comes from [meowDB](https://meowdb.com/msclassic): 246 Victoria Island maps and 75 monsters, crawled 2026-10-31; monster drops crawled 2026-11-01.
+All map and monster data comes from [meowDB](https://meowdb.com/msclassic): 248 Victoria Island maps and 76 monsters, crawled 2026-10-31 (two maps and one monster added by hand, see below); monster drops crawled 2026-11-01.
+
+### Hand-added maps
+
+The crawl missed two maps, which only showed up as unnamed "Leads off this map" exits. They were added by hand from their meowDB pages:
+
+- **Cabin of the Forsaken** (`010003112`), off the west end of The Murky Swamp II, with the boss Shade (Lv 48). It's a hidden street with a skull badge; `TYPE_OVERRIDES` keeps it from being typed `boss`.
+- **The Circulation Desk** (`010002005`), at the top of the Magic Library, with Lyn the Librarian, Sabrina the Scribe and Jon the Justicar. It's a building inside the Magic Library, which is now drawn as a safe zone instead of being hidden as one of Ellinia's buildings.
+
+Where they live, so a rebuild keeps them:
+
+- `EXTRA_MAPS`, `EXTRA_MOBS` and `TYPE_OVERRIDES` at the top of `tools/build_data.py` add them to the crawl before the build runs.
+- `data/victoria.js` has them already (edited to match what the build would write).
+- `data/minimap_info.js` has hand-made entries for both (no minimap image on meowDB; NPC and portal positions unknown, so `null`). `tools/scrape_minimaps.py --build` rebuilds that file from `data/raw/minimaps/`, so re-add these two entries if you rebuild it.
 
 ### Monster drops
 

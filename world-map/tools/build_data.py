@@ -37,6 +37,27 @@ MANUAL_POS = {
 }
 
 
+# Maps and monsters the meowDB crawl misses (reachable only from a map's edge or a building),
+# added by hand from their meowdb.com pages, in the pack's own shapes. Links to them already
+# come from the crawled maps that lead there.
+EXTRA_MAPS = {
+    # Through the portal at the west end of The Murky Swamp II; Shade, a timed boss.
+    "010003112": {"name": "Cabin of the Forsaken", "street": "Hidden Street", "isTown": False,
+                  "links": ["010003111"], "mobs": [{"id": "700006", "count": 1, "respawn": 3600}]},
+    # Up at the top of the Magic Library; NPCs come from data/minimap_info.js.
+    "010002005": {"name": "The Circulation Desk", "street": "Hidden Street", "isTown": True,
+                  "links": ["010002003"], "mobs": []},
+}
+EXTRA_MOBS = {
+    "700006": {"name": "Shade", "boss": True, "props": {
+        "Level": 48, "HP": 47000, "EXP": 488, "Physical Defense": 30, "Magic Defense": 10,
+        "Accuracy": 138, "Avoidability": 35}},
+}
+# Map types that node_type gets wrong. The Cabin is a hidden street whose only monster is a
+# boss (node_type would call it "boss"; it gets the skull badge either way).
+TYPE_OVERRIDES = {"010003112": "hidden"}
+
+
 def load_js_object(path, var):
     txt = path.read_text(encoding="utf-8")
     start = txt.index("{", txt.index(var))
@@ -64,6 +85,10 @@ def main():
         i: {"name": v[0], "boss": bool(v[1]), "props": {k: x for k, x in zip(mob_keys, v[2:]) if x is not None}}
         for i, v in pack["mobs"].items()
     }
+    for i, m in EXTRA_MAPS.items():
+        maps.setdefault(i, {"id": i, **m})
+    for i, m in EXTRA_MOBS.items():
+        mobs_raw.setdefault(i, m)
 
     # Previous positions: pinned maps always keep theirs; other maps keep theirs too unless
     # the build is run with --relayout.
@@ -173,6 +198,8 @@ def main():
         return len(adj[m["id"]]) >= 3 and any(maps[j]["mobs"] for j in adj[m["id"]])
 
     def node_type(m):
+        if m["id"] in TYPE_OVERRIDES:
+            return TYPE_OVERRIDES[m["id"]]
         street = (m.get("street") or "").lower()
         mob_list = m.get("mobs", [])
         all_boss = mob_list and all(mobs.get(f"m{x['id']}", {}).get("boss") for x in mob_list)
