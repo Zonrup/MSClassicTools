@@ -50,7 +50,8 @@ def main():
         src, out = ROOT / rel, dest / rel
         out.parent.mkdir(parents=True, exist_ok=True)
         if src.is_dir():
-            shutil.copytree(src, out)
+            # *_original.* are full-size sources kept for reference (see README); the page doesn't load them.
+            shutil.copytree(src, out, ignore=shutil.ignore_patterns("*_original.*"))
         else:
             shutil.copy2(src, out)
 

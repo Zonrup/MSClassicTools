@@ -81,7 +81,7 @@ A map's node takes the level that a third of its spawns are at or above (`HARD_S
 | `tools/crawl_meowdb.js` | Browser-console script that crawls meowDB and downloads the pack. | Yes |
 | `tools/fetch_mob_images.py` | Downloads every monster's sprite from meowDB into `data/mobs/` and writes `data/mob_images.js`. | Yes |
 | `tools/deploy_pages.py` | Copies the page into the GitHub Pages site repo and commits/pushes it (see Deploying). | Yes |
-| `data/mobs/`, `data/mob_images.js` | Monster sprites (PNG or animated GIF) and the monster key → file index. | No, re-run the fetch |
+| `data/mobs/`, `data/mob_images.js` | Monster sprites (PNG or animated GIF) and the monster key → file index. The four largest PNGs (Sporewood 63, Myewood 61, Rotten Mushmom 700003, Rafflesia 59) are shrunk to 144 px tall with a 256-colour palette (about 8 kB each instead of 31–112 kB); the full-size downloads are kept as `mob_<id>_original.png`, which the page doesn't load and the deploy leaves out. | No, re-run the fetch |
 | `tools/scrape_drops.py` | Fetches every monster's drops from meowDB and writes `data/drops.js` (see Monster drops). | Yes |
 | `data/drops.js`, `data/items/` | `window.WORLD_DROPS`: common ETC drops per monster, and the item icons. | No, re-run the scrape |
 | `tools/build_rankings.py` | Builds the default map rankings from `victoria.js` (see Map rankings). | Yes |
