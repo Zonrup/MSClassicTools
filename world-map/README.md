@@ -279,6 +279,8 @@ Feature requests, in the order we plan to tackle them. Finished ones move to [FE
 
 1. **Pick items and NPCs in the picker.** Today only monsters can be picked; items and NPCs can only be typed, one search at a time. Picking them would allow selecting several items at once (e.g. Tree Branch and Leather) for the map tooltip.
 
+2. **Full screen map info dialog** view. Some of the minimaps are weird (tall/wide) and make the right hand pane a bit difficult to use. We should add a button in the right hand info panel above "minimap" that allows us to view a fullscreen dialog of all the info for the map. The dialog can contain the minimap as well as the same organized information in a similar way as the right hand panel.
+
 ## Known data quirks / ideas
 
 - Utah's Pig Farm has a "Super Ribbon Pig" at level 200 (as listed on meowDB), so it always shows red.
