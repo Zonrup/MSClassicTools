@@ -787,6 +787,8 @@ body.rank-focus #hud .search-row, body.rank-focus #searchHint, body.rank-focus #
   padding: 0 6px; border: 1.5px solid var(--edge); border-bottom-width: 3px; border-radius: 5px;
   background: #fffaf0;
 }
+.help-ring { vertical-align: middle; margin-left: 2px; background: #6aa86a; border-radius: 6px; } /* on a grass-green square, as on the map */
+.help-shot { display: block; margin: 6px 0 8px; max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 2px 8px rgba(40, 26, 12, .28); }
 .help-stars { color: #f2b01e; -webkit-text-stroke: .6px #a8740a; letter-spacing: 1px; }
 .help-keys { list-style: none; padding-left: 0 !important; columns: 2; }
 @media (max-width: 600px) { .help-keys { columns: 1; } }

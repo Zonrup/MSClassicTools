@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent  # world-map/
 # Everything index.html loads. Add new data files here, or the live page ships without them.
 FILES = ["index.html", "css", "js", "data/terrain.js", "data/victoria.js", "data/mob_images.js", "data/mobs",
          "data/minimap_info.js", "data/minimaps", "data/drops.js", "data/items",
-         "data/rankings.js"]
+         "data/rankings.js", "data/help"]
 
 
 def git(repo, *args, check=True):
