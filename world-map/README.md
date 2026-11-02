@@ -22,7 +22,7 @@ The live copy is served from the GitHub Pages site repo `Zonrup/zonrup.github.io
 python3 world-map/tools/deploy_pages.py <path to your zonrup.github.io checkout> --push
 ```
 
-It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js` scripts and `data/mobs/`) into the site repo's `public/msclassicatlas/`, replacing what was there, commits that folder and pushes. The site's own workflow then builds and publishes it in a minute or two. Leave off `--push` to look at the commit first; `--dest` changes the folder. Commit here first so the deploy commit names the right source revision.
+It copies only what the page needs (`index.html`, `css/`, `js/`, the `data/*.js` scripts, and the images in `data/mobs/`, `data/minimaps/` and `data/items/`; the list is `FILES` in the script, so add new data files there) into the site repo's `public/msclassicatlas/`, replacing what was there, commits that folder and pushes. The site's own workflow then builds and publishes it in a minute or two. Leave off `--push` to look at the commit first; `--dest` changes the folder. Commit here first so the deploy commit names the right source revision.
 
 ## Controls
 
