@@ -293,6 +293,31 @@ Feature requests, in the order we plan to tackle them. Finished ones move to [FE
 
 1. **Ranking map hits for farming spots (for both items and monsters, but simply rank by monster)**. Currently we highlight every map that has any instance of a monster when we search for monsters or items. Like, "Orange mushroom" will highlight 23 maps. And, "Pig's head" will highlight 16 maps. However, there are some maps that are a lot better than others for farming orange mushrooms / pig heads, and I think we could group most cases into 3 tiers (best, decent, meh). For implementation, there aren't that many monsters in the game so we can simply have a mapping of monster to groups of maps by tier.
 
+OK. Let's add map tier list. In fact, for this one, we should add a feature to allow people to edit tiers locally but provide a default that we package with the site.
+Similar to the location edit feature.
+
+**Button on search dialog**
+
+Could you create a button at the bottom of the search dialog that reads "Show map rankings"? It can go to the left of the Clear button.
+The button should be greyed out and not interactible with nothing selected, but when at least one monster or item is selected, it should be available to be clicked.
+If more than 8 monsters are selected, just make it greyed out again, with mouseover text "too many monsters selected, max 8". For the purposes of max 8, an item that is dropped by multiple monsters (like leather) should "include" both of those monsters in the count, as we will need to render them in the subdialog.
+
+**Subdialog within search dialog**
+
+Clicking on it should transition the dialog into a "subdialog" (in the information hierarchy its like "to the right" / "deeper" than the top-level search dialog), with a back button at the top to return to the search multi-select, outside of the "scrollable space" of the subdialog.
+
+The rest of the subdialog, within a scrollable, will render full-width cards, one per monster in the selection that got us to this subdialog. In the subdialog, every selected Monster from the search bar is now shown in the subdialog, with a full width card per monster from the previous page's selection.
+
+Any selected items should result in the monster that drops it showing up in the subdialog, but with the item included in the card as well. If multiple items that are dropped by the same monster were selected, include them all in the cards. If an item is dropped by multiple monsters, all of those monsters should be included.
+
+On each card, the monster should be shown the left side of each card (we can re-use the search multiselect icons for this), and any items selected for that monster should be shown to the right side of the monster.
+
+Then, on the right side of the card, the list of all maps that contain the monster in a vertical ranked list order, grouped by the ranking tiers: "best", "okay", "meh". Ranking tier buckets that are empty should still be rendered for editing purposes. Each list should have a few buttons on the right: one rightmost button to "click to drag" which allows reordering it relative to the other maps (including moving it into other tier buckets). The main button (to the left of "click to drag") is the "find in map" button. The "find in map" has weird behavior - it will "temporarily" close the modal dialog, and select the map in particular, as well as search-highlighting it. However, this should result in a "modified state" of the main UI where, in the top-left panel, the search bar is gone, and hidden streets and forgotten hollow are all force-shown, and the "edit layout" button is not present. Instead, it should render small text in the same manner as the "picked" thing, that says "Showing map for monster xyz". Underneath that text, it should have two buttons spaced vertically: a larger "Return to ranking" above a smaller button "exit ranking".
+
+**Search behavior after the new tierlist**.
+
+We should also add a new slider, under "labels", called "rankings to show". It should have the 3 tiers "best", "avg" and "meh" as options. Now, when deciding to highlight maps for monster and item search, we should *only* highlight the maps that are greater than or equal to the selected tier.
+
 2. **Full screen map info dialog** view. Some of the minimaps are weird (tall/wide) and make the right hand pane a bit difficult to use. We should add a button in the right hand info panel above "minimap" that allows us to view a fullscreen dialog of all the info for the map. The dialog can contain the minimap as well as the same organized information in a similar way as the right hand panel.
 
 ## Known data quirks / ideas
