@@ -10,6 +10,10 @@ the map. Ties break by raw spawn count, then map name. Then:
   - otherwise the top 15% of its maps (rounded up) are "best", the rest of the top 50%
     (rounded up) are "okay", and the bottom half are "meh".
 
+Forgotten Hollow maps (area "forgotten_hollow") aren't ranked while that area is
+unreleased: they're left out before the percentiles are taken, and monsters found only
+there get no ranking. Set RANK_FORGOTTEN_HOLLOW = True (here and in js/map.js) once it is.
+
 The page lets people edit rankings (saved in their browser) and download them all as a
 rankings.js file; dropping that file in data/ makes the edits the new packaged default.
 """
@@ -22,6 +26,11 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "data" / "victoria.js"
 OUT = ROOT / "data" / "rankings.js"
 TIERS = ("best", "okay", "meh")
+RANK_FORGOTTEN_HOLLOW = False  # keep in step with RANK_FORGOTTEN_HOLLOW in js/map.js
+
+
+def rankable(m):
+    return RANK_FORGOTTEN_HOLLOW or m.get("area") != "forgotten_hollow"
 
 
 def load(path):
@@ -59,6 +68,8 @@ def build(data):
     totals = {}
     names = {m["id"]: m["name"] for m in data["maps"]}
     for m in data["maps"]:
+        if not rankable(m):
+            continue
         tot = 0
         for mid, c in entries(m):
             if mid not in data["mobs"]:

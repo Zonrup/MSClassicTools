@@ -125,6 +125,8 @@ Where they live, so a rebuild keeps them:
 
 `tools/build_rankings.py` writes the default `data/rankings.js` from `victoria.js`. For each monster (by its page name, so same-name variants are ranked separately) its maps are ranked by the monster's share of the map's spawns (its spawn count ÷ all monster spawns there; 20 Snails out of 67 = 30%), ties broken by raw count, then map name. A monster on 1 or 2 maps has them all in **best**; otherwise the top 15% (rounded up) are **best**, the rest of the top 50% (rounded up) are **okay**, and the bottom half are **meh** (34 maps → 6, 11, 17).
 
+Forgotten Hollow isn't released yet, so its maps aren't ranked (`RANK_FORGOTTEN_HOLLOW` in both `build_rankings.py` and `js/map.js`). They're left out before the percentiles are taken, so a monster's tiers come only from its other maps (Fairy 3 has 2 ranked maps, both Best, and Someone Else's Grave isn't counted). The 12 monsters found only there (Myewood, Sporewood, Rafflesia, ...) have no ranking and their card says so. The "Rankings to show" slider never hides Forgotten Hollow maps; the Forgotten Hollow checkbox still does. Set both flags to `True` and re-run the script once it's released.
+
 - Re-running the script replaces hand edits in `rankings.js`. To keep edits made in the page, use its "Download all rankings" instead.
 - The page puts maps that a ranking doesn't list (new data) at the end of **meh**, and drops ids that are no longer that monster's maps.
 
