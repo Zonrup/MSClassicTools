@@ -768,3 +768,7 @@ body.editing #editBar { display: flex; }
 body.rank-focus #hud .search-row, body.rank-focus #searchHint, body.rank-focus #hud .check, body.rank-focus #editToggle { display: none; }
 .rk-unranked { font-style: italic; }
 .rank-list.rank-none { height: auto; min-height: 90px; display: flex; align-items: center; justify-content: center; padding: 16px; text-align: center; font-size: 13px; font-style: italic; color: var(--ink-soft); }
+
+/* ---------- Help dialog (near full screen) ---------- */
+.dialog.help-dialog { width: min(1100px, 100%); height: min(92vh, 1000px); max-height: none; }
+.help-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }

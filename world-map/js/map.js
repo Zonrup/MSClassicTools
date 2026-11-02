@@ -1651,6 +1651,7 @@
   }, { passive: false });
 
   window.addEventListener("keydown", (ev) => {
+    if (!helpDialog.hidden) { if (ev.key === "Escape") closeHelp(); return; } // the map ignores keys under Help
     if (ev.target.matches?.("input")) { if (ev.key === "Escape") ev.target.blur(); return; }
     // Letters, digits and space start a search in the HUD box (the first key replaces any
     // old query); while the picker dialog is open they go to its filter instead.
@@ -2913,6 +2914,15 @@
   // ---------------------------------------------------------------------------
   // Edit mode
   // ---------------------------------------------------------------------------
+  // Help: a near-full-screen dialog from the HUD's Help button. × , Esc or a click outside
+  // closes it. (Content still to be written; see the TODO in README.md.)
+  const helpDialog = document.getElementById("helpDialog"), helpBtn = document.getElementById("helpBtn");
+  function openHelp() { helpDialog.hidden = false; document.getElementById("helpDialogClose").focus(); }
+  function closeHelp() { helpDialog.hidden = true; helpBtn.focus(); }
+  helpBtn.addEventListener("click", openHelp);
+  document.getElementById("helpDialogClose").addEventListener("click", closeHelp);
+  helpDialog.addEventListener("click", (ev) => { if (ev.target === helpDialog) closeHelp(); });
+
   const editToggle = document.getElementById("editToggle");
   function setEdit(on) {
     state.edit = on;

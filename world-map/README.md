@@ -308,6 +308,8 @@ Feature requests, in the order we plan to tackle them. Finished ones move to [FE
 
 1. **Full screen map info dialog** view. Some of the minimaps are weird (tall/wide) and make the right hand pane a bit difficult to use. We should add a button in the right hand info panel above "minimap" that allows us to view a fullscreen dialog of all the info for the map. The dialog can contain the minimap as well as the same organized information in a similar way as the right hand panel.
 
+2. **Fill out the Help dialog.** The HUD's **Help** button (under Edit layout) opens an empty, near-full-screen dialog (`#helpDialog` in `index.html`, `openHelp` in `js/map.js`; ×, Esc or a click outside closes it). Write its content: how to use the map, search, the picker, map rankings and the other controls.
+
 ## Known data quirks / ideas
 
 - "Zombie Mushroom (Lv 30)" (`m800011`) is only on Precipice of Darkness in Forgotten Hollow, which isn't released yet, so it may be wrong. If it turns out to be an instance-only monster (like the Lv 21 Ligators in the Kerning party quest), it should be left out of the picker.

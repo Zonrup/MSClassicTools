@@ -53,6 +53,7 @@
         <div class="ticks" id="rankTicks"><span>Best</span><span>Okay</span><span>Meh</span></div>
       </div>
       <button id="editToggle" class="btn ghost" title="Drag nodes to lay out the map (`)">Edit layout</button>
+      <button type="button" id="helpBtn" class="btn ghost" title="How to use the map">Help</button>
     </div>
   </div>
 
@@ -105,6 +106,16 @@
         <button type="button" class="btn ghost" id="mobClear">Clear</button>
         <button type="button" class="btn" id="mobShow">Show on map</button>
       </footer>
+    </div>
+  </div>
+
+  <div id="helpDialog" class="dialog-backdrop" hidden>
+    <div class="dialog card help-dialog" role="dialog" aria-modal="true" aria-labelledby="helpDialogTitle">
+      <header>
+        <h2 id="helpDialogTitle">Help</h2>
+        <button type="button" class="close" id="helpDialogClose" title="Close (Esc)">×</button>
+      </header>
+      <div id="helpBody" class="help-body"></div>
     </div>
   </div>
 
